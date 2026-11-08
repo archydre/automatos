@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Máquina de Turing de Decisão</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  
+  <h1>Máquina de Turing de Decisão</h1>
+  <p>Simulador didático para linguagens não livres de contexto (Tema 5)</p>
+  
+  <p>
+    <strong>Selecione a Linguagem:</strong>
+    <button id="btn-lang-anbncn" class="btn-tab active" data-lang="anbncn">L = {aⁿ bⁿ cⁿ : n ≥ 1}</button>
+    <button id="btn-lang-ww" class="btn-tab" data-lang="ww">L = {ww : w ∈ {0,1}*}</button>
+  </p>
+
+  <hr>
+
+  <p>
+    <label for="input-word"><strong>Palavra de Entrada (w):</strong></label>
+    <input type="text" id="input-word" placeholder="Ex: aabbcc ou 0101" autocomplete="off" spellcheck="false">
+    <button id="btn-load">Carregar &amp; Simular</button>
+  </p>
+
+  <p>
+    Exemplos rápidos:
+    <span id="presets-container">
+      <!-- Injetado dinamicamente -->
+    </span>
+  </p>
+
+  <hr>
+
+  <!-- ESQUEMA ITERATIVO -->
+  <h2>1. Diagrama de Estados do Autômato</h2>
+  <p>Grafo formal da Máquina de Turing. O nó do estado ativo e a aresta da transição percorrida acendem a cada passo:</p>
+
+  <div class="diagram-box">
+    <div id="diagram-container">
+      <!-- SVG renderizado via diagram.js -->
+    </div>
+    <div id="diagram-tooltip" class="tooltip">Passe o mouse sobre um estado para ver seu papel</div>
+  </div>
+
+  <h2>2. Fita Infinita e Cabeçote</h2>
+  
+  <!-- FITA -->
+  <div class="tape-box">
+    <div class="tape-pointer">
+      <span id="head-tag" class="head-label">[q0]</span>
+      <span class="head-arrow">▲</span>
+    </div>
+    <div class="tape-viewport" id="tape-viewport">
+      <div class="tape-track" id="tape-track">
+        <!-- Células geradas via JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- CONTROLES -->
+  <p>
+    <button id="btn-reset">Inicio</button>
+    <button id="btn-prev">Anterior</button>
+    <button id="btn-play"><span id="play-text">Reproduzir</span></button>
+    <button id="btn-next">Proximo</button>
+    <button id="btn-end">Fim</button>
+    &nbsp;&nbsp;&nbsp;&nbsp;
+    <label for="speed-slider">Velocidade:
+      <input type="range" id="speed-slider" min="50" max="1000" step="50" value="300">
+      <span id="speed-val">300ms</span>
+    </label>
+  </p>
+
+  <!-- STATUS E TELEMETRIA -->
+  <p>
+    <strong>Status:</strong> <span id="metric-status"><b>AGUARDANDO</b></span>&nbsp;&nbsp;
+    <strong>Estado:</strong> <span id="metric-state">-</span>&nbsp;&nbsp;
+    <strong>Simbolo:</strong> <span id="metric-symbol">-</span>&nbsp;&nbsp;
+    <strong>Passo:</strong> <span id="metric-step">0 / 0</span>&nbsp;&nbsp;
+    <strong>Movimento:</strong> <span id="badge-direction">-</span><br>
+    <strong>Regra disparada:</strong> <span id="metric-transition">-</span>
+  </p>
+
+  <!-- RESOLUÇÃO COMENTADA PASSO A PASSO -->
+  <p>
+    <strong>O que a Máquina de Turing está fazendo neste passo:</strong> <span id="step-badge-counter">[Passo #0]</span><br>
+    <span id="didactic-comment">Carregue uma palavra para acompanhar a resolução comentada a cada transição.</span><br>
+    <small><strong>Objetivo atual:</strong> <span id="meta-intent">Aguardando início...</span> &nbsp;&nbsp; <strong>Regra formal:</strong> <code id="meta-rule">-</code></small>
+  </p>
+
+  <hr>
+
+  <!-- TABELA DE TRANSIÇÃO E HISTÓRICO (DETALHES EM HTML PURO) -->
+  <details>
+    <summary><strong>Ver Tabela Formal de Transições (δ) e Histórico Completo de Passos</strong></summary>
+    
+    <p>
+      <button class="btn-tab active" data-tab="tab-transitions">Tabela de Transição</button>
+      <button class="btn-tab" data-tab="tab-history">Histórico de Passos</button>
+    </p>
+
+    <div id="tab-transitions" class="tab-panel">
+      <table border="1" cellpadding="6" cellspacing="0">
+        <thead>
+          <tr>
+            <th>Estado (q)</th>
+            <th>Lê (σ)</th>
+            <th>Próximo (q')</th>
+            <th>Escreve (σ')</th>
+            <th>Direção (D)</th>
+            <th>Regra Formal</th>
+          </tr>
+        </thead>
+        <tbody id="tbody-transitions">
+          <!-- Preenchido via JS -->
+        </tbody>
+      </table>
+    </div>
+
+    <div id="tab-history" class="tab-panel hidden">
+      <div class="history-list" id="trace-list">
+        <!-- Snapshots preenchidos via JS -->
+      </div>
+    </div>
+  </details>
+
+  <hr>
+
+  <p><small>Máquina de Turing Determinística • Reconhecedora de Decisão • Trabalho de Teoria da Computação</small></p>
+
+  <script src="diagram.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

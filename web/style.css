@@ -1,0 +1,229 @@
+/* ==========================================================================
+   ESQUEMA INTERATIVO DA MÁQUINA DE TURING
+   Visual limpo, direto e sem exageros estéticos (estilo clássico / Web 1.0).
+   Controles, textos, status e tabelas usam HTML puro nativo.
+   ========================================================================== */
+
+body {
+  padding: 20px 40px;
+  max-width: 980px;
+  margin: 0 auto;
+}
+
+/* 1. GRAFO VETORIAL DO AUTÔMATO (SVG) */
+.diagram-box {
+  border: 1px solid #000;
+  padding: 10px;
+  position: relative;
+  overflow-x: auto;
+}
+
+.automaton-svg {
+  width: 100%;
+  min-width: 680px;
+  height: auto;
+  display: block;
+}
+
+.diagram-edge {
+  stroke: #444;
+  stroke-width: 1.5;
+  fill: none;
+}
+
+.diagram-edge.edge-active {
+  stroke: #d00;
+  stroke-width: 2.8;
+}
+
+.diagram-label {
+  font-family: monospace;
+  font-size: 11px;
+  fill: #000;
+  font-weight: bold;
+  text-anchor: middle;
+}
+
+.diagram-label.edge-label-active {
+  fill: #d00;
+}
+
+.diagram-node {
+  cursor: pointer;
+}
+
+.node-circle {
+  fill: #fff;
+  stroke: #000;
+  stroke-width: 1.8;
+}
+
+.node-text {
+  font-family: monospace;
+  font-size: 11px;
+  font-weight: bold;
+  fill: #000;
+}
+
+.diagram-node.node-active .node-circle {
+  fill: #ff0; /* Amarelo de destaque */
+  stroke: #d00;
+  stroke-width: 2.8;
+}
+
+.diagram-node.node-active .node-text {
+  fill: #b00;
+}
+
+.accept-node .node-circle-outer {
+  fill: none;
+  stroke: #000;
+  stroke-width: 1.5;
+}
+
+.accept-node.node-active .node-circle-outer {
+  stroke: #080;
+}
+
+.accept-node.node-active .node-circle {
+  fill: #cfc;
+  stroke: #080;
+}
+
+.tooltip {
+  margin-top: 4px;
+  font-size: 0.85rem;
+  font-style: italic;
+}
+
+/* 2. FITA INFINITA MECÂNICA & CABEÇOTE */
+.tape-box {
+  border: 1px solid #000;
+  position: relative;
+  padding: 24px 0 10px 0;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.tape-pointer {
+  position: absolute;
+  top: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.head-label {
+  font-family: monospace;
+  font-size: 0.75rem;
+  font-weight: bold;
+  background: #000;
+  color: #fff;
+  padding: 0 4px;
+}
+
+.head-arrow {
+  color: #d00;
+  font-size: 13px;
+  line-height: 1;
+}
+
+.tape-viewport {
+  width: 100%;
+  overflow-x: hidden;
+  position: relative;
+}
+
+.tape-track {
+  display: flex;
+  gap: 2px;
+  width: max-content;
+  transition: transform 0.2s linear;
+}
+
+.tape-cell {
+  width: 44px;
+  height: 50px;
+  background-color: #fff;
+  border: 1px solid #000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 2px;
+  user-select: none;
+  box-sizing: border-box;
+}
+
+.cell-index {
+  font-family: monospace;
+  font-size: 0.65rem;
+  color: #666;
+}
+
+.cell-char {
+  font-family: monospace;
+  font-size: 1.25rem;
+  font-weight: bold;
+  color: #000;
+}
+
+.tape-cell.blank .cell-char {
+  color: #888;
+}
+
+.tape-cell.is-head {
+  background-color: #ff0;
+  border: 2px solid #d00;
+}
+
+.tape-cell.is-head .cell-char {
+  color: #d00;
+}
+
+/* 3. AUXILIARES FUNCIONAIS MÍNIMOS */
+.preset-chip {
+  margin: 2px 4px 2px 0;
+  font-family: monospace;
+}
+
+.btn-tab.active {
+  font-weight: bold;
+}
+
+.hidden {
+  display: none !important;
+}
+
+.active-row {
+  background-color: #ff0 !important;
+  font-weight: bold;
+}
+
+.history-list {
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid #000;
+  margin-top: 6px;
+}
+
+.trace-item {
+  padding: 3px 6px;
+  border-bottom: 1px solid #ccc;
+  font-family: monospace;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.trace-item:hover {
+  background-color: #eee;
+}
+
+.trace-item.active {
+  background-color: #ff0;
+  font-weight: bold;
+}

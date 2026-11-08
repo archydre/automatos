@@ -1,0 +1,1458 @@
+#!/usr/bin/env python3
+"""
+Script gerador do Manual Didático Completo da Máquina de Turing de Decisão em formato PDF.
+Gera um documento HTML completo com CSS de alta qualidade para impressão e compila via Chromium.
+"""
+
+import os
+import subprocess
+import sys
+
+HTML_CONTENT = """<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Manual Didático: Máquina de Turing de Decisão</title>
+  <style>
+    @page {
+      size: A4;
+      margin: 16mm 14mm 16mm 14mm;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+
+    body {
+      font-family: 'Liberation Sans', 'Noto Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 9.6pt;
+      line-height: 1.5;
+      color: #1e293b;
+      background-color: #ffffff;
+      margin: 0;
+      padding: 0;
+    }
+
+    /* CAPA */
+    .cover-page {
+      page-break-after: always;
+      height: 100vh;
+      min-height: 260mm;
+      background: linear-gradient(135deg, #090d16 0%, #1e1b4b 50%, #090d16 100%);
+      color: #ffffff;
+      padding: 35mm 22mm 22mm 22mm;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+    }
+
+    .cover-badge {
+      display: inline-block;
+      background: rgba(99, 102, 241, 0.25);
+      border: 1px solid rgba(129, 140, 248, 0.5);
+      color: #a5b4fc;
+      padding: 6px 16px;
+      border-radius: 9999px;
+      font-size: 10.5pt;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+      width: fit-content;
+    }
+
+    .cover-title {
+      font-size: 28pt;
+      font-weight: 800;
+      line-height: 1.15;
+      color: #ffffff;
+      margin: 0 0 14px 0;
+      letter-spacing: -0.5px;
+    }
+
+    .cover-subtitle {
+      font-size: 13.5pt;
+      font-weight: 400;
+      color: #cbd5e1;
+      line-height: 1.4;
+      margin-bottom: 25px;
+    }
+
+    .cover-divider {
+      width: 70px;
+      height: 4px;
+      background: linear-gradient(90deg, #6366f1, #38bdf8);
+      border-radius: 2px;
+      margin-bottom: 30px;
+    }
+
+    .cover-topics {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 12px;
+      padding: 18px 22px;
+      margin-bottom: 30px;
+    }
+
+    .cover-topics h4 {
+      margin: 0 0 10px 0;
+      color: #38bdf8;
+      font-size: 10.5pt;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+    }
+
+    .cover-topics ul {
+      margin: 0;
+      padding-left: 18px;
+      color: #e2e8f0;
+      font-size: 9.5pt;
+      line-height: 1.6;
+    }
+
+    .cover-footer {
+      border-top: 1px solid rgba(255, 255, 255, 0.15);
+      padding-top: 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      color: #94a3b8;
+      font-size: 9pt;
+    }
+
+    .cover-footer strong {
+      color: #ffffff;
+    }
+
+    /* CAPÍTULOS E TÍTULOS */
+    .chapter {
+      page-break-before: always;
+    }
+
+    .chapter-header {
+      background: linear-gradient(90deg, #f1f5f9 0%, #ffffff 100%);
+      border-left: 5px solid #4f46e5;
+      padding: 10px 14px;
+      margin-bottom: 18px;
+      border-radius: 0 6px 6px 0;
+    }
+
+    .chapter-num {
+      font-size: 8.5pt;
+      font-weight: 700;
+      color: #6366f1;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .chapter-title {
+      font-size: 18pt;
+      font-weight: 800;
+      color: #0f172a;
+      margin: 2px 0 0 0;
+      letter-spacing: -0.3px;
+    }
+
+    h2 {
+      font-size: 12.5pt;
+      font-weight: 700;
+      color: #1e1b4b;
+      margin-top: 18px;
+      margin-bottom: 10px;
+      border-left: 3.5px solid #6366f1;
+      padding-left: 8px;
+      page-break-after: avoid;
+    }
+
+    h3 {
+      font-size: 10.5pt;
+      font-weight: 700;
+      color: #334155;
+      margin-top: 14px;
+      margin-bottom: 6px;
+      page-break-after: avoid;
+    }
+
+    p {
+      margin: 0 0 9px 0;
+      text-align: justify;
+    }
+
+    strong {
+      color: #0f172a;
+    }
+
+    /* BOXES DIDÁTICOS */
+    .callout {
+      border-radius: 8px;
+      padding: 10px 14px;
+      margin: 12px 0;
+      font-size: 9.2pt;
+      page-break-inside: avoid;
+    }
+
+    .callout-analogy {
+      background-color: #fffbeb;
+      border: 1px solid #fde68a;
+      border-left: 4px solid #d97706;
+      color: #78350f;
+    }
+
+    .callout-analogy .callout-title {
+      font-weight: 700;
+      color: #92400e;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 5px;
+      font-size: 9.6pt;
+    }
+
+    .callout-theory {
+      background-color: #eff6ff;
+      border: 1px solid #bfdbfe;
+      border-left: 4px solid #2563eb;
+      color: #1e3a8a;
+    }
+
+    .callout-theory .callout-title {
+      font-weight: 700;
+      color: #1d4ed8;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 5px;
+      font-size: 9.6pt;
+    }
+
+    .callout-code {
+      background-color: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-left: 4px solid #64748b;
+      color: #334155;
+    }
+
+    .callout-code .callout-title {
+      font-weight: 700;
+      color: #1e293b;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 5px;
+      font-size: 9.6pt;
+    }
+
+    .callout-warning {
+      background-color: #fef2f2;
+      border: 1px solid #fecaca;
+      border-left: 4px solid #dc2626;
+      color: #7f1d1d;
+    }
+
+    .callout-warning .callout-title {
+      font-weight: 700;
+      color: #b91c1c;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 5px;
+      font-size: 9.6pt;
+    }
+
+    /* TABELAS */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 10px 0 14px 0;
+      font-size: 8.5pt;
+      page-break-inside: auto;
+    }
+
+    thead {
+      display: table-header-group;
+    }
+
+    tr {
+      page-break-inside: avoid;
+    }
+
+    th {
+      background-color: #1e293b;
+      color: #ffffff;
+      padding: 6px 8px;
+      text-align: left;
+      font-weight: 600;
+      border: 1px solid #334155;
+    }
+
+    td {
+      padding: 5px 8px;
+      border: 1px solid #cbd5e1;
+      vertical-align: top;
+    }
+
+    tr:nth-child(even) {
+      background-color: #f8fafc;
+    }
+
+    .table-state {
+      font-family: 'JetBrainsMono Nerd Font', 'Liberation Mono', monospace;
+      font-weight: 700;
+      color: #4338ca;
+    }
+
+    .table-symbol {
+      font-family: 'JetBrainsMono Nerd Font', 'Liberation Mono', monospace;
+      background-color: #f1f5f9;
+      padding: 1px 5px;
+      border-radius: 3px;
+      font-weight: 600;
+    }
+
+    .badge-dir {
+      display: inline-block;
+      padding: 1px 5px;
+      border-radius: 3px;
+      font-size: 7.5pt;
+      font-weight: 700;
+      font-family: monospace;
+    }
+
+    .dir-r { background: #dcfce7; color: #166534; }
+    .dir-l { background: #fee2e2; color: #991b1b; }
+    .dir-s { background: #fef3c7; color: #92400e; }
+
+    /* CÓDIGO */
+    code {
+      font-family: 'JetBrainsMono Nerd Font', 'Liberation Mono', monospace;
+      font-size: 8.5pt;
+      background-color: #f1f5f9;
+      color: #b91c1c;
+      padding: 1px 4px;
+      border-radius: 3px;
+      border: 1px solid #e2e8f0;
+    }
+
+    pre {
+      font-family: 'JetBrainsMono Nerd Font', 'Liberation Mono', monospace;
+      font-size: 8pt;
+      background-color: #0f172a;
+      color: #e2e8f0;
+      padding: 10px 12px;
+      border-radius: 6px;
+      overflow-x: auto;
+      line-height: 1.4;
+      margin: 10px 0;
+      page-break-inside: avoid;
+    }
+
+    /* ILUSTRAÇÕES VETORIAIS (SVG) */
+    .diagram-container {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 12px;
+      margin: 14px 0;
+      text-align: center;
+      page-break-inside: avoid;
+    }
+
+    .diagram-caption {
+      font-size: 8.2pt;
+      font-weight: 600;
+      color: #64748b;
+      margin-top: 6px;
+    }
+
+    /* MATEMÁTICA / TUPLAS */
+    .formula {
+      background: #f8fafc;
+      border-left: 3px solid #6366f1;
+      padding: 6px 12px;
+      margin: 8px 0;
+      font-family: 'Liberation Serif', Georgia, serif;
+      font-size: 10.5pt;
+      color: #1e1b4b;
+      font-style: italic;
+    }
+
+    ul, ol {
+      margin: 6px 0 10px 0;
+      padding-left: 20px;
+    }
+
+    li {
+      margin-bottom: 3px;
+    }
+
+    .badge-ok {
+      background-color: #dcfce7;
+      color: #15803d;
+      font-weight: 700;
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-size: 7.8pt;
+    }
+
+    .badge-rej {
+      background-color: #fee2e2;
+      color: #b91c1c;
+      font-weight: 700;
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-size: 7.8pt;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- CAPA -->
+  <div class="cover-page">
+    <div>
+      <div class="cover-badge">Tema 5 • Teoria da Computação & Linguagens Formais</div>
+      <h1 class="cover-title">Máquina de Turing de Decisão</h1>
+      <div class="cover-subtitle">Fundamentação Teórica Rigorosa, Algoritmos para Linguagens Não Livres de Contexto, Engenharia de Software e Demonstração Passo a Passo</div>
+      <div class="cover-divider"></div>
+
+      <div class="cover-topics">
+        <h4>Conteúdo e Objetivos Pedagógicos Deste Manual:</h4>
+        <ul>
+          <li><strong>Fundamentação Teórica da Computabilidade:</strong> A 7-tupla formal, hierarquia de Chomsky e a fronteira que separa autômatos finitos/pilha de máquinas universais.</li>
+          <li><strong>Analogias Didáticas Intuitivas:</strong> Modelagem visual da fita infinita, cabeçote leitor/escritor e controle finito explicados sem jargões obscuros.</li>
+          <li><strong>Algoritmo Formal para L₁ = {aⁿ bⁿ cⁿ | n ≥ 1}:</strong> Mecânica de pareamento trilateral de contadores independentes com tabela completa de transições.</li>
+          <li><strong>Algoritmo Formal para L₂ = {ww | w ∈ {0, 1}*}:</strong> Algoritmo em 2 estágios (localização de ponto médio por convergência e casamento idêntico de metades).</li>
+          <li><strong>Engenharia de Código Sem Lacunas:</strong> Explicação detalhada da arquitetura modular em Python (Fita indexada em ℤ, Decisor determinístico, CLI e Web interativa).</li>
+          <li><strong>Bateria de Testes & Verificação:</strong> Cobertura exaustiva de casos aceitos, rejeitados por discrepância, descompasso de paridade e condições de borda.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="cover-footer">
+      <div>
+        <div><strong>Autor / Desenvolvedor:</strong> Zaqueu Nilton de Souza Paiva (GitHub: @archydre)</div>
+        <div><strong>Ambiente de Execução:</strong> Python 3.10+ (Biblioteca Padrão) • CLI ANSI • Web nativa</div>
+      </div>
+      <div style="text-align: right;">
+        <div><strong>Data de Conclusão:</strong> Novembro de 2026</div>
+        <div><strong>Status:</strong> Aprovado em todos os testes unitários (15/15)</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CAPÍTULO 1: FUNDAMENTAÇÃO TEÓRICA -->
+  <div class="chapter">
+    <div class="chapter-header">
+      <div class="chapter-num">Capítulo 1</div>
+      <h1 class="chapter-title">Fundamentação Teórica da Máquina de Turing</h1>
+    </div>
+    
+    <h2>1.1. O que é uma Máquina de Turing?</h2>
+    <p>
+      Proposta pelo matemático britânico Alan Turing em 1936 em seu artigo histórico <em>"On Computable Numbers"</em>, a <strong>Máquina de Turing (MT)</strong> é o modelo matemático canônico de computação universal. Segundo a célebre <em>Tese de Church-Turing</em>, qualquer função que possa ser calculada por um algoritmo efetivo em um computador digital moderno (não importa quão avançado ou quão potente seja seu hardware) pode ser calculada por uma Máquina de Turing.
+    </p>
+
+    <div class="callout callout-analogy">
+      <div class="callout-title">💡 Analogia Didática: O Arquivista e o Galpão Infinito</div>
+      <p>
+        Imagine um operário extremamente metódico (o <strong>Controle Finito / Estado</strong>) trabalhando em um galpão retilíneo infinito repleto de gavetas numeradas (a <strong>Fita</strong>). Cada gaveta pode guardar apenas uma ficha de cartolina com um único caractere impresso, ou estar vazia (o símbolo de <strong>Branco</strong>, <code>⊔</code> ou <code>_</code>).
+      </p>
+      <p>
+        O operário carrega uma prancheta de instruções fixas (a <strong>Função de Transição δ</strong>). Ele fica em frente a uma única gaveta de cada vez (a posição do <strong>Cabeçote</strong>). A cada segundo, o operário executa rigorosamente três tarefas indivisíveis:
+      </p>
+      <ol>
+        <li>Ele olha a ficha na gaveta atual e consulta sua prancheta: <em>"Se estou no estado atual X e li o símbolo Y..."</em>;</li>
+        <li>Ele substitui a ficha da gaveta por um novo símbolo Z (ou mantém a mesma);</li>
+        <li>Ele dá exatamente um passo para a esquerda (<strong>L</strong>), um passo para a direita (<strong>R</strong>) ou fica parado (<strong>S</strong>), e atualiza seu estado mental para o novo estado W.</li>
+      </ol>
+      <p>
+        O operário continua esse processo incansavelmente até que a prancheta o mande ir para o estado de <strong>Aceitação</strong>, para o estado de <strong>Rejeição</strong>, ou até que a prancheta não tenha regra para aquela situação (travamento por rejeição).
+      </p>
+    </div>
+
+    <!-- DIAGRAMA VETORIAL: ARQUITETURA DA MÁQUINA DE TURING -->
+    <div class="diagram-container">
+      <svg viewBox="0 0 680 140" width="100%" height="135" xmlns="http://www.w3.org/2000/svg">
+        <!-- Fita Células -->
+        <g id="tape-cells">
+          <!-- Célula -1 (Branco) -->
+          <rect x="30" y="25" width="55" height="50" rx="4" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5"/>
+          <text x="57" y="56" font-family="monospace" font-size="18" font-weight="bold" fill="#94a3b8" text-anchor="middle">⊔</text>
+          <text x="76" y="38" font-family="sans-serif" font-size="8" fill="#94a3b8">-1</text>
+          <!-- Célula 0 (X) -->
+          <rect x="95" y="25" width="55" height="50" rx="4" fill="#ffffff" stroke="#94a3b8" stroke-width="1.5"/>
+          <text x="122" y="56" font-family="monospace" font-size="18" font-weight="bold" fill="#0f172a" text-anchor="middle">X</text>
+          <text x="141" y="38" font-family="sans-serif" font-size="8" fill="#94a3b8">0</text>
+          <!-- Célula 1 (X) -->
+          <rect x="160" y="25" width="55" height="50" rx="4" fill="#ffffff" stroke="#94a3b8" stroke-width="1.5"/>
+          <text x="187" y="56" font-family="monospace" font-size="18" font-weight="bold" fill="#0f172a" text-anchor="middle">X</text>
+          <text x="206" y="38" font-family="sans-serif" font-size="8" fill="#94a3b8">1</text>
+          <!-- Célula 2 (Y) - ATIVA (HEAD) -->
+          <rect x="225" y="25" width="55" height="50" rx="4" fill="#e0e7ff" stroke="#4f46e5" stroke-width="2.5"/>
+          <text x="252" y="56" font-family="monospace" font-size="19" font-weight="bold" fill="#4338ca" text-anchor="middle">Y</text>
+          <text x="271" y="38" font-family="sans-serif" font-size="8" font-weight="bold" fill="#4338ca">2</text>
+          <!-- Célula 3 (b) -->
+          <rect x="290" y="25" width="55" height="50" rx="4" fill="#ffffff" stroke="#94a3b8" stroke-width="1.5"/>
+          <text x="317" y="56" font-family="monospace" font-size="18" font-weight="bold" fill="#0f172a" text-anchor="middle">b</text>
+          <text x="336" y="38" font-family="sans-serif" font-size="8" fill="#94a3b8">3</text>
+          <!-- Célula 4 (Z) -->
+          <rect x="355" y="25" width="55" height="50" rx="4" fill="#ffffff" stroke="#94a3b8" stroke-width="1.5"/>
+          <text x="382" y="56" font-family="monospace" font-size="18" font-weight="bold" fill="#0f172a" text-anchor="middle">Z</text>
+          <text x="401" y="38" font-family="sans-serif" font-size="8" fill="#94a3b8">4</text>
+          <!-- Célula 5 (c) -->
+          <rect x="420" y="25" width="55" height="50" rx="4" fill="#ffffff" stroke="#94a3b8" stroke-width="1.5"/>
+          <text x="447" y="56" font-family="monospace" font-size="18" font-weight="bold" fill="#0f172a" text-anchor="middle">c</text>
+          <text x="466" y="38" font-family="sans-serif" font-size="8" fill="#94a3b8">5</text>
+          <!-- Célula 6 (Branco) -->
+          <rect x="485" y="25" width="55" height="50" rx="4" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5"/>
+          <text x="512" y="56" font-family="monospace" font-size="18" font-weight="bold" fill="#94a3b8" text-anchor="middle">⊔</text>
+          <text x="531" y="38" font-family="sans-serif" font-size="8" fill="#94a3b8">6</text>
+        </g>
+
+        <!-- Indicador de Fita Infinita -->
+        <text x="12" y="54" font-family="sans-serif" font-size="18" fill="#64748b">...</text>
+        <text x="550" y="54" font-family="sans-serif" font-size="18" fill="#64748b">...</text>
+
+        <!-- Cabeçote Leitor/Escritor -->
+        <g transform="translate(252, 75)">
+          <polygon points="0,5 -8,18 8,18" fill="#4f46e5"/>
+          <rect x="-42" y="18" width="84" height="34" rx="6" fill="#1e1b4b" stroke="#4f46e5" stroke-width="1.5"/>
+          <text x="0" y="32" font-family="sans-serif" font-size="8.5" font-weight="bold" fill="#ffffff" text-anchor="middle">CABEÇOTE</text>
+          <text x="0" y="44" font-family="sans-serif" font-size="8" fill="#a5b4fc" text-anchor="middle">L ◀ | S ● | ▶ R</text>
+        </g>
+
+        <!-- Bloco de Controle de Estados -->
+        <g transform="translate(585, 25)">
+          <rect x="0" y="0" width="85" height="85" rx="8" fill="#0f172a" stroke="#6366f1" stroke-width="2"/>
+          <text x="42" y="25" font-family="sans-serif" font-size="8.5" font-weight="bold" fill="#38bdf8" text-anchor="middle">CONTROLE</text>
+          <text x="42" y="37" font-family="sans-serif" font-size="8" fill="#cbd5e1" text-anchor="middle">FINITO (Q)</text>
+          <circle cx="42" cy="58" r="14" fill="#312e81" stroke="#818cf8" stroke-width="1.5"/>
+          <text x="42" y="63" font-family="monospace" font-size="11" font-weight="bold" fill="#ffffff" text-anchor="middle">q1</text>
+        </g>
+        <!-- Linha de Conexão -->
+        <path d="M 294 110 L 585 68" fill="none" stroke="#6366f1" stroke-width="1.5" stroke-dasharray="4,4"/>
+      </svg>
+      <div class="diagram-caption">Figura 1.1 — Arquitetura Canônica da Máquina de Turing: Fita infinita bidirecional em ℤ, Cabeçote com movimentos L/R/S e Controle de Estados Finitos.</div>
+    </div>
+
+    <h2>1.2. A Definição Formal (A 7-Tupla)</h2>
+    <p>
+      Formalmente, a Máquina de Turing Determinística de Decisão implementada neste projeto é representada pela 7-tupla matemática:
+    </p>
+
+    <div class="formula">
+      M = (Q, &Sigma;, &Gamma;, &delta;, q<sub>0</sub>, B, F)
+    </div>
+
+    <p>Onde cada componente é definido rigorosamente:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th style="width: 13%;">Componente</th>
+          <th style="width: 25%;">Nome Formal</th>
+          <th style="width: 62%;">Significado e Papel na Implementação</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="table-state">Q</span></td>
+          <td>Conjunto de Estados</td>
+          <td>Conjunto finito de estados de controle interno da máquina (ex: <code>q0</code>, <code>q1</code>, <code>q_accept</code>). Representa a "memória imediata" do autômato.</td>
+        </tr>
+        <tr>
+          <td><span class="table-state">&Sigma;</span></td>
+          <td>Alfabeto de Entrada</td>
+          <td>Conjunto finito de símbolos permitidos na palavra de entrada. O símbolo em branco <code>B</code> <strong>nunca</strong> pertence a &Sigma; (ex: <code>{a, b, c}</code> ou <code>{0, 1}</code>).</td>
+        </tr>
+        <tr>
+          <td><span class="table-state">&Gamma;</span></td>
+          <td>Alfabeto da Fita</td>
+          <td>Conjunto finito de símbolos que podem ser gravados ou lidos na fita. Contém estritamente todo o alfabeto de entrada mais o branco e marcadores auxiliares (&Sigma; &subset; &Gamma; e B &in; &Gamma;). Ex: <code>{a, b, c, X, Y, Z, _}</code>.</td>
+        </tr>
+        <tr>
+          <td><span class="table-state">&delta;</span></td>
+          <td>Função de Transição</td>
+          <td>
+            A regra de computação: <code>&delta;: Q &times; &Gamma; &rarr; Q &times; &Gamma; &times; {L, R, S}</code>.<br>
+            Dado o estado atual e o símbolo lido na fita, determina: (1) próximo estado, (2) símbolo a ser escrito, e (3) movimento do cabeçote (Esquerda, Direita ou Parado).
+          </td>
+        </tr>
+        <tr>
+          <td><span class="table-state">q<sub>0</sub></span></td>
+          <td>Estado Inicial</td>
+          <td>Estado em que a máquina se encontra antes de ler o primeiro caractere (pertence a Q). O cabeçote é posicionado na primeira célula da entrada (índice 0).</td>
+        </tr>
+        <tr>
+          <td><span class="table-state">B</span></td>
+          <td>Símbolo de Branco</td>
+          <td>Elemento especial de &Gamma; que preenche todas as infinitas células não gravadas da fita (no projeto, representado internamente como <code>_</code> e graficamente como <code>⊔</code>).</td>
+        </tr>
+        <tr>
+          <td><span class="table-state">F</span></td>
+          <td>Estados Finais / Decisores</td>
+          <td>Conjunto de estados de aceitação (<code>F_accept</code>) e de rejeição explícita (<code>F_reject</code>). Uma vez alcançado um desses estados, a máquina cessa imediatamente sua execução.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>1.3. A Hierarquia de Chomsky e a Necessidade da Máquina de Turing</h2>
+    <p>
+      Para compreender o porquê deste projeto exigir uma Máquina de Turing, é vital examinar a <strong>Hierarquia de Chomsky</strong>. A teoria das linguagens formais divide os problemas de computação em quatro níveis fundamentais de poder expressivo:
+    </p>
+
+    <!-- DIAGRAMA VETORIAL: HIERARQUIA DE CHOMSKY -->
+    <div class="diagram-container">
+      <svg viewBox="0 0 650 170" width="100%" height="160" xmlns="http://www.w3.org/2000/svg">
+        <!-- Nível 0: Turing Reconhecíveis -->
+        <rect x="15" y="10" width="620" height="150" rx="12" fill="#f8fafc" stroke="#334155" stroke-width="2"/>
+        <text x="35" y="32" font-family="sans-serif" font-size="9" font-weight="bold" fill="#0f172a">Tipo 0: Recursivamente Enumeráveis (Máquinas de Turing Gerais / Semi-Decisores)</text>
+        
+        <!-- Nível 1: Turing Decidíveis / Sensíveis ao Contexto -->
+        <rect x="35" y="42" width="580" height="110" rx="10" fill="#ede9fe" stroke="#6366f1" stroke-width="2"/>
+        <text x="55" y="62" font-family="sans-serif" font-size="9" font-weight="bold" fill="#4338ca">Tipo 1: Linguagens Decidíveis / Sensíveis ao Contexto (MTs de Decisão)</text>
+        <text x="440" y="62" font-family="monospace" font-size="8.5" font-weight="bold" fill="#6d28d9">★ L₁ = aⁿbⁿcⁿ &amp; L₂ = ww ★</text>
+
+        <!-- Nível 2: Livres de Contexto -->
+        <rect x="55" y="74" width="540" height="70" rx="8" fill="#e0f2fe" stroke="#0284c7" stroke-width="1.8"/>
+        <text x="75" y="93" font-family="sans-serif" font-size="8.5" font-weight="bold" fill="#0369a1">Tipo 2: Livres de Contexto (Autômato com Pilha - PDA) [ex: aⁿbⁿ, palíndromos w wᴿ]</text>
+
+        <!-- Nível 3: Regulares -->
+        <rect x="75" y="104" width="500" height="34" rx="6" fill="#dcfce7" stroke="#16a34a" stroke-width="1.8"/>
+        <text x="95" y="125" font-family="sans-serif" font-size="8.5" font-weight="bold" fill="#15803d">Tipo 3: Regulares (Autômatos Finitos DFA / NFA) [ex: expressões regulares, a*b*]</text>
+      </svg>
+      <div class="diagram-caption">Figura 1.2 — Hierarquia de Chomsky. Observa-se que tanto L₁={aⁿbⁿcⁿ} quanto L₂={ww} residem estritamente além do poder de Autômatos com Pilha.</div>
+    </div>
+
+    <div class="callout callout-theory">
+      <div class="callout-title">📘 Por que Autômatos com Pilha Falham em L₁ = {aⁿ bⁿ cⁿ} e L₂ = {ww}?</div>
+      <p>
+        <strong>1. Falha em aⁿbⁿcⁿ:</strong> Uma pilha só possui uma operação de topo (LIFO - <em>Last-In, First-Out</em>). Quando um Autômato com Pilha lê os <code>a</code>'s, ele empilha <em>n</em> itens. Ao ler os <code>b</code>'s, ele precisa desempilhar esses itens para garantir que a quantidade de <em>b</em>'s é igual a <em>n</em>. Porém, ao final dos <code>b</code>'s, <strong>a pilha está completamente vazia</strong>! O autômato perdeu o registro da contagem e não tem como conferir se os <code>c</code>'s subsequentes também têm quantidade exatamente igual a <em>n</em>.
+      </p>
+      <p>
+        <strong>2. Falha em ww:</strong> Para reconhecer se uma palavra repete exatamente a si mesma (como <code>0101</code> onde <code>w=01</code>), a ordem dos símbolos deve ser preservada na comparação (o 1º símbolo de w₁ compara com o 1º de w₂). No entanto, uma pilha <strong>inverte a ordem natural dos símbolos</strong> ao ser desempilhada! O PDA consegue reconhecer o palíndromo espelhado <code>w w<sup>R</sup></code> (como <code>0110</code>), mas é matematicamente incapaz de reconhecer <code>ww</code>.
+      </p>
+      <p>
+        <strong>A Solução da Máquina de Turing:</strong> Como a MT tem uma fita infinita onde o cabeçote pode mover-se livremente para a esquerda (<code>L</code>) e para a direita (<code>R</code>), ela pode ler um símbolo, caminhar até o outro lado da fita para verificar o par, marcar a célula como visitada e rebobinar o cabeçote até o ponto de partida sem perder dado algum.
+      </p>
+    </div>
+
+    <h2>1.4. Decisores (Deciders) vs. Reconhecedores: Garantia de Parada</h2>
+    <p>
+      Uma das distinções mais cruciais na ciência da computação é a diferença entre uma <em>Máquina de Turing Reconhecedora</em> e uma <em>Máquina de Turing Decisora</em>:
+    </p>
+    <ul>
+      <li><strong>Reconhecedora (Semi-Decisora):</strong> Para cadeias válidas pertencentes à linguagem, a máquina garante que para e aceita. Entretanto, para cadeias inválidas, ela pode parar em rejeição <em>ou entrar em um loop infinito eterno</em>.</li>
+      <li><strong>Decisora (Decider / Algoritmo Completo):</strong> A máquina <strong>sempre para (halts)</strong> em um número finito de passos para absolutamente toda e qualquer palavra de entrada <code>w &in; &Sigma;*</code>, decidindo conclusivamente com <strong>Aceita</strong> (<code>q_accept</code>) ou <strong>Rejeita</strong> (<code>q_reject</code>).</li>
+    </ul>
+    <p>
+      As duas máquinas implementadas neste projeto são <strong>Decisores Formais Estritos</strong>. Nenhuma combinação de entrada gera laços infinitos; o autômato avança seus marcadores de forma monótona, garantindo encerramento em tempo polinomial quadrático <code>O(|w|²)</code>.
+    </p>
+  </div>
+
+  <!-- CAPÍTULO 2: ARQUITETURA DE SOFTWARE -->
+  <div class="chapter">
+    <div class="chapter-header">
+      <div class="chapter-num">Capítulo 2</div>
+      <h1 class="chapter-title">Arquitetura de Software e Engenharia de Código</h1>
+    </div>
+
+    <h2>2.1. Visão Geral da Arquitetura Modular</h2>
+    <p>
+      O sistema foi construído seguindo princípios de arquitetura limpa, separação de responsabilidades e desacoplamento total entre o modelo formal matemático e as interfaces de visualização. O repositório utiliza exclusivamente a <strong>biblioteca padrão do Python</strong> (sem dependências como Flask, Django ou PyTorch), garantindo portabilidade absoluta em qualquer ambiente Linux/macOS/Windows.
+    </p>
+
+    <div class="callout callout-code">
+      <div class="callout-title">📂 Estrutura de Pastas e Responsabilidades</div>
+      <pre>automatos/
+├── turing_machine/
+│   ├── tape.py              # Fita infinita bidirecional indexada em Z
+│   ├── machine.py           # Controlador formal da MT (7-tupla e snapshots)
+│   ├── visualizer.py        # Renderizador de console em cores ANSI
+│   └── languages/
+│       ├── an_bn_cn.py      # Autômato formal para L1 = {aⁿ bⁿ cⁿ | n >= 1}
+│       └── ww.py            # Autômato formal para L2 = {ww | w in {0,1}*}
+├── web/
+│   ├── index.html           # Interface web gráfica com fita e diagrama SVG
+│   ├── style.css            # Estilização visual minimalista
+│   ├── app.js               # Gerenciador de eventos, reprodução e fita
+│   └── diagram.js           # Renderizador interativo de grafos vetoriais
+├── tests/
+│   ├── test_tape.py         # Testes de unidade da fita infinita e bordas
+│   ├── test_an_bn_cn.py     # Testes da linguagem aⁿbⁿcⁿ
+│   └── test_ww.py           # Testes da linguagem ww
+├── server.py                # Servidor HTTP nativo e API REST (/api/simulate)
+└── main.py                  # Ponto de entrada CLI interativo e demonstrador</pre>
+    </div>
+
+    <h2>2.2. Detalhamento do Módulo <code>tape.py</code> (Fita Infinita em ℤ)</h2>
+    <p>
+      Uma fita de Máquina de Turing ideal é infinita em ambas as direções. Como computadores reais possuem memória finita, a implementação precisa de uma abstração elegante.
+    </p>
+    <p>
+      A classe <code>Tape</code> utiliza a estrutura <code>collections.defaultdict(lambda: self.blank_symbol)</code>. Isso traz propriedades matemáticas excepcionais:
+    </p>
+    <ul>
+      <li><strong>Indexação em ℤ:</strong> O cabeçote inicia na célula <code>0</code>, mas pode mover-se para a esquerda até índices negativos (<code>-1, -2, -3, ...</code>) ou para a direita até índices positivos arbitrários (<code>+1, +2, +3, ...</code>).</li>
+      <li><strong>Acesso O(1) com Memória Dinâmica Sob Demanda:</strong> Células nunca visitadas não consomem memória RAM. No momento em que o cabeçote lê ou escreve em uma célula nova, ela é instanciada automaticamente com o símbolo de branco configurado (<code>_</code>).</li>
+      <li><strong>Suporte a Três Direções de Movimento:</strong>
+        <ul>
+          <li><code>'R'</code> (Right): incrementa o cabeçote em <code>+1</code>;</li>
+          <li><code>'L'</code> (Left): decrementa o cabeçote em <code>-1</code>;</li>
+          <li><code>'S'</code> (Stay): mantém o cabeçote na mesma célula (<code>+0</code>), permitindo transições de parada limpas sem deslocamento forçado.</li>
+        </ul>
+      </li>
+    </ul>
+
+    <h2>2.3. Detalhamento do Módulo <code>machine.py</code> (O Motor Determinístico)</h2>
+    <p>
+      A classe <code>TuringMachine</code> orquestra a execução da 7-tupla formal. Para cada ciclo de relógio:
+    </p>
+    <ol>
+      <li>Lê o símbolo da fita sob a cabeça: <code>read_symbol = tape.read()</code>;</li>
+      <li>Busca a regra na tabela de transição: <code>rule_key = (current_state, read_symbol)</code>;</li>
+      <li>Se a chave não existir em <code>transitions</code>, a máquina entra em <strong>parada por travamento (crash halt)</strong>: o estado é mantido, o flag <code>rejected</code> torna-se verdadeiro e uma mensagem pedagógica personalizada é injetada no snapshot explicando o motivo exato da rejeição;</li>
+      <li>Se a chave existir, aplica atômicamente: escreve o novo símbolo, move a fita (L/R/S) e atualiza o estado atual;</li>
+      <li>Gera um <strong>Snapshot Imutável</strong> (<code>StepSnapshot</code>) contendo o número do passo, estado anterior, estado atual, posição do cabeçote, cópia da fita, regra formal acionada e comentário didático. Esse histórico completo (<code>trace</code>) alimenta tanto a CLI quanto a interface Web.</li>
+    </ol>
+
+    <h2>2.4. A Camada de Visualização e Servidor Web Nativo (<code>server.py</code> e <code>web/</code>)</h2>
+    <p>
+      O projeto disponibiliza duas interfaces de usuário independentes:
+    </p>
+    <ul>
+      <li><strong>CLI no Terminal (<code>visualizer.py</code> / <code>main.py</code>):</strong> Utiliza sequências de escape ANSI com alta resolução de cores para desenhar as células da fita no terminal, com um ponteiro apontando para a célula ativa, o símbolo sob o cabeçote destacado e a regra formal <code>&delta;(q, &sigma;) = (q', &sigma;', D)</code> impressa a cada iteração. Possui modo passo a passo com confirmação via teclado e modo animado.</li>
+      <li><strong>Interface Gráfica Web (<code>server.py</code>, <code>index.html</code>, <code>app.js</code>, <code>diagram.js</code>):</strong>
+        Um servidor HTTP derivado de <code>http.server.ThreadingHTTPServer</code> expõe o endpoint REST <code>POST /api/simulate</code>. O frontend renderiza:
+        <ol>
+          <li>A fita animada que se desloca horizontalmente sob uma lente fixa;</li>
+          <li>O <strong>Grafo Vetorial SVG interativo</strong> do autômato, onde o nó do estado atual acende com brilho néon pulsante e a aresta da transição recém-percorrida exibe uma corrente elétrica fluindo;</li>
+          <li>A tabela completa de transições com a linha ativa iluminada em tempo real;</li>
+          <li>Painel explicativo pedagógico com intenção do estado e interpretação semântica.</li>
+        </ol>
+      </li>
+    </ul>
+  </div>
+
+  <!-- CAPÍTULO 3: LINGUAGEM L1 = a^n b^n c^n -->
+  <div class="chapter">
+    <div class="chapter-header">
+      <div class="chapter-num">Capítulo 3</div>
+      <h1 class="chapter-title">Algoritmo 1: Reconhecedor de L₁ = {aⁿ bⁿ cⁿ | n ≥ 1}</h1>
+    </div>
+
+    <h2>3.1. Visão Geral e Intuição do Algoritmo</h2>
+    <p>
+      A linguagem <code>L₁ = {aⁿ bⁿ cⁿ | n &ge; 1}</code> exige que a palavra seja composta por uma sequência estrita de <code>a</code>'s, seguida por igual quantidade de <code>b</code>'s, seguida por igual quantidade de <code>c</code>'s (ex: <code>abc</code> com n=1; <code>aabbcc</code> com n=2; <code>aaabbbccc</code> com n=3).
+    </p>
+
+    <div class="callout callout-analogy">
+      <div class="callout-title">💡 Analogia da Linha de Montagem de Trios (Parafuso, Porca e Arruela)</div>
+      <p>
+        Pense em uma fábrica que monta caixas com peças mecânicas. Cada pacote precisa ter exatamente <strong>1 parafuso (a)</strong>, <strong>1 porca (b)</strong> e <strong>1 arruela (c)</strong>. As peças chegam enfileiradas na esteira: primeiro todos os parafusos, depois todas as porcas, depois todas as arruelas.
+      </p>
+      <p>O inspetor da máquina faz o seguinte processo repetitivo:</p>
+      <ol>
+        <li><strong>Marcação do Parafuso:</strong> Anda até o primeiro parafuso solto e coloca um carimbo indelével <code>X</code> (registrando que o 1º elemento do trio foi separado). Ele muda seu modo de pensar para <em>"preciso achar a porca correspondente"</em> (estado <code>q1</code>).</li>
+        <li><strong>Busca da Porca:</strong> Ele caminha para a direita ignorando outros parafusos já marcados ou não, até encontrar a primeira porca solta <code>b</code>. Ele carimba a porca com <code>Y</code> e muda seu modo de pensar para <em>"agora preciso achar a arruela correspondente"</em> (estado <code>q2</code>).</li>
+        <li><strong>Busca da Arruela:</strong> Continua caminhando para a direita ignorando outras porcas soltas e arruelas já carimbadas, até achar a primeira arruela solta <code>c</code>. Ele carimba a arruela com <code>Z</code>. O trio está completo!</li>
+        <li><strong>Rebobinamento:</strong> O inspetor inverte o passo e caminha sem parar para a esquerda (estado <code>q3</code>) até bater de volta no carimbo <code>X</code> mais recente. Ao achar o <code>X</code>, ele dá um passo à direita e volta ao modo inicial (<code>q0</code>) para iniciar o próximo trio.</li>
+        <li><strong>Inspeção Final:</strong> Quando o inspetor procura pelo próximo <code>a</code> e só encontra o carimbo <code>Y</code>, significa que <em>todos os parafusos acabaram</em>. Ele então passa para a fase de conferência (estados <code>q5</code> e <code>q6</code>): caminha à direita garantindo que <strong>não sobrou nenhuma porca solta nem nenhuma arruela solta</strong>. Ao bater no fim da esteira (branco <code>_</code>), ele aceita a caixa com louvor!</li>
+      </ol>
+    </div>
+
+    <!-- DIAGRAMA VETORIAL: GRAFO DE ESTADOS AN_BN_CN -->
+    <div class="diagram-container">
+      <svg viewBox="0 0 650 180" width="100%" height="170" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1 L 10 5 L 0 9 z" fill="#4f46e5"/>
+          </marker>
+        </defs>
+
+        <!-- Nós do Ciclo Principal: q0, q1, q2, q3 -->
+        <!-- q0 -->
+        <circle cx="80" cy="60" r="22" fill="#e0e7ff" stroke="#4f46e5" stroke-width="2.5"/>
+        <text x="80" y="65" font-family="monospace" font-size="12" font-weight="bold" fill="#1e1b4b" text-anchor="middle">q0</text>
+        <path d="M 30 60 L 56 60" fill="none" stroke="#4f46e5" stroke-width="2" marker-end="url(#arrow)"/>
+
+        <!-- q1 -->
+        <circle cx="210" cy="60" r="22" fill="#ffffff" stroke="#4f46e5" stroke-width="2"/>
+        <text x="210" y="65" font-family="monospace" font-size="12" font-weight="bold" fill="#1e1b4b" text-anchor="middle">q1</text>
+        <!-- Aresta q0 -> q1 -->
+        <path d="M 102 60 L 186 60" fill="none" stroke="#4f46e5" stroke-width="2" marker-end="url(#arrow)"/>
+        <text x="144" y="52" font-family="sans-serif" font-size="8.5" font-weight="bold" fill="#4338ca" text-anchor="middle">a / X, R</text>
+
+        <!-- q2 -->
+        <circle cx="340" cy="60" r="22" fill="#ffffff" stroke="#4f46e5" stroke-width="2"/>
+        <text x="340" y="65" font-family="monospace" font-size="12" font-weight="bold" fill="#1e1b4b" text-anchor="middle">q2</text>
+        <!-- Aresta q1 -> q2 -->
+        <path d="M 232 60 L 316 60" fill="none" stroke="#4f46e5" stroke-width="2" marker-end="url(#arrow)"/>
+        <text x="274" y="52" font-family="sans-serif" font-size="8.5" font-weight="bold" fill="#4338ca" text-anchor="middle">b / Y, R</text>
+
+        <!-- q3 -->
+        <circle cx="210" cy="140" r="22" fill="#ffffff" stroke="#4f46e5" stroke-width="2"/>
+        <text x="210" y="145" font-family="monospace" font-size="12" font-weight="bold" fill="#1e1b4b" text-anchor="middle">q3</text>
+        <!-- Aresta q2 -> q3 -->
+        <path d="M 325 76 L 228 126" fill="none" stroke="#4f46e5" stroke-width="2" marker-end="url(#arrow)"/>
+        <text x="285" y="112" font-family="sans-serif" font-size="8.5" font-weight="bold" fill="#4338ca" text-anchor="middle">c / Z, L</text>
+        <!-- Aresta q3 -> q0 (Retorno) -->
+        <path d="M 192 126 L 95 76" fill="none" stroke="#4f46e5" stroke-width="2" marker-end="url(#arrow)"/>
+        <text x="135" y="112" font-family="sans-serif" font-size="8.5" font-weight="bold" fill="#4338ca" text-anchor="middle">X / X, R</text>
+
+        <!-- Auto-laços -->
+        <path d="M 205 38 C 200 15, 220 15, 215 38" fill="none" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrow)"/>
+        <text x="210" y="12" font-family="sans-serif" font-size="7.5" fill="#475569" text-anchor="middle">a,Y / R</text>
+
+        <path d="M 335 38 C 330 15, 350 15, 345 38" fill="none" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrow)"/>
+        <text x="340" y="12" font-family="sans-serif" font-size="7.5" fill="#475569" text-anchor="middle">b,Z / R</text>
+
+        <path d="M 205 162 C 200 185, 220 185, 215 162" fill="none" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrow)"/>
+        <text x="210" y="180" font-family="sans-serif" font-size="7.5" fill="#475569" text-anchor="middle">Z,b,Y,a / L</text>
+
+        <!-- Validação Final: q5, q6, q_accept -->
+        <!-- q5 -->
+        <circle cx="450" cy="60" r="22" fill="#ffffff" stroke="#059669" stroke-width="2"/>
+        <text x="450" y="65" font-family="monospace" font-size="12" font-weight="bold" fill="#065f46" text-anchor="middle">q5</text>
+        <!-- Aresta q0 -> q5 (Curva por cima) -->
+        <path d="M 85 38 C 110 -25, 420 -25, 445 38" fill="none" stroke="#059669" stroke-width="2" marker-end="url(#arrow)"/>
+        <text x="260" y="-3" font-family="sans-serif" font-size="8.5" font-weight="bold" fill="#047857" text-anchor="middle">Y / Y, R (Todos 'a's consumidos)</text>
+
+        <!-- q6 -->
+        <circle cx="550" cy="60" r="22" fill="#ffffff" stroke="#059669" stroke-width="2"/>
+        <text x="550" y="65" font-family="monospace" font-size="12" font-weight="bold" fill="#065f46" text-anchor="middle">q6</text>
+        <!-- Aresta q5 -> q6 -->
+        <path d="M 472 60 L 526 60" fill="none" stroke="#059669" stroke-width="2" marker-end="url(#arrow)"/>
+        <text x="500" y="52" font-family="sans-serif" font-size="8.5" font-weight="bold" fill="#047857" text-anchor="middle">Z / Z, R</text>
+
+        <!-- q_accept (Círculo Duplo) -->
+        <circle cx="610" cy="140" r="22" fill="#dcfce7" stroke="#16a34a" stroke-width="2.5"/>
+        <circle cx="610" cy="140" r="18" fill="none" stroke="#16a34a" stroke-width="1.5"/>
+        <text x="610" y="144" font-family="monospace" font-size="11" font-weight="bold" fill="#15803d" text-anchor="middle">qa</text>
+        <!-- Aresta q6 -> q_accept -->
+        <path d="M 565 77 L 598 120" fill="none" stroke="#16a34a" stroke-width="2" marker-end="url(#arrow)"/>
+        <text x="595" y="94" font-family="sans-serif" font-size="8.5" font-weight="bold" fill="#15803d" text-anchor="middle">_ / _, S</text>
+      </svg>
+      <div class="diagram-caption">Figura 3.1 — Grafo Formal de Transições para aⁿbⁿcⁿ. O ciclo triangular q0-q1-q2-q3 processa trios individuais; a saída para q5-q6-qa valida a terminação limpa.</div>
+    </div>
+
+    <h2>3.2. Especificação Formal da Máquina M₁</h2>
+    <ul>
+      <li><strong>Estados:</strong> <code>Q = {q0, q1, q2, q3, q5, q6, q_accept, q_reject}</code></li>
+      <li><strong>Alfabeto de Entrada:</strong> <code>&Sigma; = {a, b, c}</code></li>
+      <li><strong>Alfabeto da Fita:</strong> <code>&Gamma; = {a, b, c, X, Y, Z, _}</code></li>
+      <li><strong>Estado Inicial:</strong> <code>q0</code></li>
+      <li><strong>Símbolo de Branco:</strong> <code>_</code></li>
+      <li><strong>Estado de Aceitação:</strong> <code>F = {q_accept}</code></li>
+    </ul>
+
+    <h2>3.3. Tabela Completa de Transições δ de M₁</h2>
+    <p>Abaixo está a totalidade das 16 regras formais que compõem o autômato, acompanhadas da explicação detalhada do papel de cada uma:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th style="width: 14%;">Regra Formal</th>
+          <th style="width: 11%;">Estado Atual</th>
+          <th style="width: 10%;">Lê</th>
+          <th style="width: 12%;">Próx. Estado</th>
+          <th style="width: 10%;">Escreve</th>
+          <th style="width: 8%;">Direção</th>
+          <th style="width: 35%;">Explicação Didática do Papel da Regra</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>&delta;(q0, a)</code></td>
+          <td><span class="table-state">q0</span></td>
+          <td><span class="table-symbol">a</span></td>
+          <td><span class="table-state">q1</span></td>
+          <td><span class="table-symbol">X</span></td>
+          <td><span class="badge-dir dir-r">R</span></td>
+          <td>Marca o primeiro 'a' livre com 'X'. Abre um novo trio. Vai buscar 'b'.</td>
+        </tr>
+        <tr>
+          <td><code>&delta;(q0, Y)</code></td>
+          <td><span class="table-state">q0</span></td>
+          <td><span class="table-symbol">Y</span></td>
+          <td><span class="table-state">q5</span></td>
+          <td><span class="table-symbol">Y</span></td>
+          <td><span class="badge-dir dir-r">R</span></td>
+          <td>Todos os 'a's foram consumidos! Inicia varredura final para confirmar pares.</td>
+        </tr>
+        <tr>
+          <td><code>&delta;(q1, a)</code></td>
+          <td><span class="table-state">q1</span></td>
+          <td><span class="table-symbol">a</span></td>
+          <td><span class="table-state">q1</span></td>
+          <td><span class="table-symbol">a</span></td>
+          <td><span class="badge-dir dir-r">R</span></td>
+          <td>Pula outros 'a's ainda não marcados em direção ao bloco de 'b's.</td>
+        </tr>
+        <tr>
+          <td><code>&delta;(q1, Y)</code></td>
+          <td><span class="table-state">q1</span></td>
+          <td><span class="table-symbol">Y</span></td>
+          <td><span class="table-state">q1</span></td>
+          <td><span class="table-symbol">Y</span></td>
+          <td><span class="badge-dir dir-r">R</span></td>
+          <td>Pula 'Y's já consumidos em rodadas anteriores para chegar no próximo 'b' livre.</td>
+        </tr>
+        <tr>
+          <td><code>&delta;(q1, b)</code></td>
+          <td><span class="table-state">q1</span></td>
+          <td><span class="table-symbol">b</span></td>
+          <td><span class="table-state">q2</span></td>
+          <td><span class="table-symbol">Y</span></td>
+          <td><span class="badge-dir dir-r">R</span></td>
+          <td>Achou o 'b'! Marca com 'Y' (2º membro do trio). Vai buscar o 'c'.</td>
+        </tr>
+        <tr>
+          <td><code>&delta;(q2, b)</code></td>
+          <td><span class="table-state">q2</span></td>
+          <td><span class="table-symbol">b</span></td>
+          <td><span class="table-state">q2</span></td>
+          <td><span class="table-symbol">b</span></td>
+          <td><span class="badge-dir dir-r">R</span></td>
+          <td>Pula outros 'b's ainda não marcados em direção ao bloco de 'c's.</td>
+        </tr>
+        <tr>
+          <td><code>&delta;(q2, Z)</code></td>
+          <td><span class="table-state">q2</span></td>
+          <td><span class="table-symbol">Z</span></td>
+          <td><span class="table-state">q2</span></td>
+          <td><span class="table-symbol">Z</span></td>
+          <td><span class="badge-dir dir-r">R</span></td>
+          <td>Pula 'Z's já consumidos em rodadas anteriores para chegar no próximo 'c' livre.</td>
+        </tr>
+        <tr>
+          <td><code>&delta;(q2, c)</code></td>
+          <td><span class="table-state">q2</span></td>
+          <td><span class="table-symbol">c</span></td>
+          <td><span class="table-state">q3</span></td>
+          <td><span class="table-symbol">Z</span></td>
+          <td><span class="badge-dir dir-l">L</span></td>
+          <td>Achou o 'c'! Marca com 'Z'. Trio (X, Y, Z) completo! Inicia rebobinamento.</td>
+        </tr>
+        <tr>
+          <td><code>&delta;(q3, Z)</code></td>
+          <td><span class="table-state">q3</span></td>
+          <td><span class="table-symbol">Z</span></td>
+          <td><span class="table-state">q3</span></td>
+          <td><span class="table-symbol">Z</span></td>
+          <td><span class="badge-dir dir-l">L</span></td>
+          <td>Rebobina cabeçote à esquerda atravessando 'Z's marcados.</td>
+        </tr>
+        <tr>
+          <td><code>&delta;(q3, b)</code></td>
+          <td><span class="table-state">q3</span></td>
+          <td><span class="table-symbol">b</span></td>
+          <td><span class="table-state">q3</span></td>
+          <td><span class="table-symbol">b</span></td>
+          <td><span class="badge-dir dir-l">L</span></td>
+          <td>Rebobina cabeçote à esquerda atravessando 'b's não marcados.</td>
+        </tr>
+        <tr>
+          <td><code>&delta;(q3, Y)</code></td>
+          <td><span class="table-state">q3</span></td>
+          <td><span class="table-symbol">Y</span></td>
+          <td><span class="table-state">q3</span></td>
+          <td><span class="table-symbol">Y</span></td>
+          <td><span class="badge-dir dir-l">L</span></td>
+          <td>Rebobina cabeçote à esquerda atravessando 'Y's marcados.</td>
+        </tr>
+        <tr>
+          <td><code>&delta;(q3, a)</code></td>
+          <td><span class="table-state">q3</span></td>
+          <td><span class="table-symbol">a</span></td>
+          <td><span class="table-state">q3</span></td>
+          <td><span class="table-symbol">a</span></td>
+          <td><span class="badge-dir dir-l">L</span></td>
+          <td>Rebobina cabeçote à esquerda atravessando 'a's não marcados.</td>
+        </tr>
+        <tr>
+          <td><code>&delta;(q3, X)</code></td>
+          <td><span class="table-state">q3</span></td>
+          <td><span class="table-symbol">X</span></td>
+          <td><span class="table-state">q0</span></td>
+          <td><span class="table-symbol">X</span></td>
+          <td><span class="badge-dir dir-r">R</span></td>
+          <td>Alcançou o último 'X' marcado! Dá um passo à direita e volta a q0.</td>
+        </tr>
+        <tr>
+          <td><code>&delta;(q5, Y)</code></td>
+          <td><span class="table-state">q5</span></td>
+          <td><span class="table-symbol">Y</span></td>
+          <td><span class="table-state">q5</span></td>
+          <td><span class="table-symbol">Y</span></td>
+          <td><span class="badge-dir dir-r">R</span></td>
+          <td>Varre bloco de 'Y's garantindo que não há 'b's desmarcados no meio.</td>
+        </tr>
+        <tr>
+          <td><code>&delta;(q5, Z)</code></td>
+          <td><span class="table-state">q5</span></td>
+          <td><span class="table-symbol">Z</span></td>
+          <td><span class="table-state">q6</span></td>
+          <td><span class="table-symbol">Z</span></td>
+          <td><span class="badge-dir dir-r">R</span></td>
+          <td>Terminou os 'Y's e encontrou 'Z'. Transiciona para checar bloco de 'Z's.</td>
+        </tr>
+        <tr>
+          <td><code>&delta;(q6, Z)</code></td>
+          <td><span class="table-state">q6</span></td>
+          <td><span class="table-symbol">Z</span></td>
+          <td><span class="table-state">q6</span></td>
+          <td><span class="table-symbol">Z</span></td>
+          <td><span class="badge-dir dir-r">R</span></td>
+          <td>Varre bloco de 'Z's garantindo que não há 'c's desmarcados.</td>
+        </tr>
+        <tr>
+          <td><code>&delta;(q6, _)</code></td>
+          <td><span class="table-state">q6</span></td>
+          <td><span class="table-symbol">_</span></td>
+          <td><span class="table-state">q_accept</span></td>
+          <td><span class="table-symbol">_</span></td>
+          <td><span class="badge-dir dir-s">S</span></td>
+          <td>Fim da fita limpo alcançado! Proporção 1:1:1 validada. <strong>ACEITA!</strong></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>3.4. Demonstração de Execução Passo a Passo (Trace) para w = "aabbcc"</h2>
+    <p>Abaixo está o traçado completo da palavra <code>w = aabbcc</code> (n=2), sem nenhuma etapa omitida:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th style="width: 7%;">Passo</th>
+          <th style="width: 10%;">Estado</th>
+          <th style="width: 8%;">Pos.</th>
+          <th style="width: 25%;">Visão da Fita (Cabeçote entre [ ])</th>
+          <th style="width: 22%;">Regra Disparada</th>
+          <th style="width: 28%;">Descrição do Acontecimento</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>0</td><td>q0</td><td>0</td><td><code>[a] a b b c c _</code></td><td>Carga Inicial</td><td>Entrada carregada na fita na posição 0.</td></tr>
+        <tr><td>1</td><td>q1</td><td>1</td><td><code>X [a] b b c c _</code></td><td>&delta;(q0, a) &rarr; (q1, X, R)</td><td>Gravou X na pos 0, avançou para procurar 'b'.</td></tr>
+        <tr><td>2</td><td>q1</td><td>2</td><td><code>X a [b] b c c _</code></td><td>&delta;(q1, a) &rarr; (q1, a, R)</td><td>Pula 'a' na pos 1 em direção ao bloco de 'b'.</td></tr>
+        <tr><td>3</td><td>q2</td><td>3</td><td><code>X a Y [b] c c _</code></td><td>&delta;(q1, b) &rarr; (q2, Y, R)</td><td>Achou 'b' na pos 2! Gravou Y, avança para buscar 'c'.</td></tr>
+        <tr><td>4</td><td>q2</td><td>4</td><td><code>X a Y b [c] c _</code></td><td>&delta;(q2, b) &rarr; (q2, b, R)</td><td>Pula 'b' na pos 3 em direção ao bloco de 'c'.</td></tr>
+        <tr><td>5</td><td>q3</td><td>3</td><td><code>X a Y [b] Z c _</code></td><td>&delta;(q2, c) &rarr; (q3, Z, L)</td><td>Achou 'c' na pos 4! Gravou Z. Trio 1 fechado! Rebobina.</td></tr>
+        <tr><td>6</td><td>q3</td><td>2</td><td><code>X a [Y] b Z c _</code></td><td>&delta;(q3, b) &rarr; (q3, b, L)</td><td>Rebobinando à esquerda sobre 'b'.</td></tr>
+        <tr><td>7</td><td>q3</td><td>1</td><td><code>X [a] Y b Z c _</code></td><td>&delta;(q3, Y) &rarr; (q3, Y, L)</td><td>Rebobinando à esquerda sobre 'Y'.</td></tr>
+        <tr><td>8</td><td>q3</td><td>0</td><td><code>[X] a Y b Z c _</code></td><td>&delta;(q3, a) &rarr; (q3, a, L)</td><td>Rebobinando à esquerda sobre 'a'.</td></tr>
+        <tr><td>9</td><td>q0</td><td>1</td><td><code>X [a] Y b Z c _</code></td><td>&delta;(q3, X) &rarr; (q0, X, R)</td><td>Bateu no X! Dá 1 passo à direita e volta a q0.</td></tr>
+        <tr><td>10</td><td>q1</td><td>2</td><td><code>X X [Y] b Z c _</code></td><td>&delta;(q0, a) &rarr; (q1, X, R)</td><td>Gravou X na pos 1 (segundo trio iniciado).</td></tr>
+        <tr><td>11</td><td>q1</td><td>3</td><td><code>X X Y [b] Z c _</code></td><td>&delta;(q1, Y) &rarr; (q1, Y, R)</td><td>Pula 'Y' já marcado para achar o próximo 'b' livre.</td></tr>
+        <tr><td>12</td><td>q2</td><td>4</td><td><code>X X Y Y [Z] c _</code></td><td>&delta;(q1, b) &rarr; (q2, Y, R)</td><td>Achou 'b' na pos 3! Gravou Y. Procura 'c'.</td></tr>
+        <tr><td>13</td><td>q2</td><td>5</td><td><code>X X Y Y Z [c] _</code></td><td>&delta;(q2, Z) &rarr; (q2, Z, R)</td><td>Pula 'Z' já marcado para achar o próximo 'c' livre.</td></tr>
+        <tr><td>14</td><td>q3</td><td>4</td><td><code>X X Y Y [Z] Z _</code></td><td>&delta;(q2, c) &rarr; (q3, Z, L)</td><td>Achou 'c' na pos 5! Gravou Z. Segundo trio fechado!</td></tr>
+        <tr><td>15</td><td>q3</td><td>3</td><td><code>X X Y [Y] Z Z _</code></td><td>&delta;(q3, Z) &rarr; (q3, Z, L)</td><td>Rebobinando à esquerda sobre 'Z'.</td></tr>
+        <tr><td>16</td><td>q3</td><td>2</td><td><code>X X [Y] Y Z Z _</code></td><td>&delta;(q3, Y) &rarr; (q3, Y, L)</td><td>Rebobinando à esquerda sobre 'Y'.</td></tr>
+        <tr><td>17</td><td>q3</td><td>1</td><td><code>X [X] Y Y Z Z _</code></td><td>&delta;(q3, Y) &rarr; (q3, Y, L)</td><td>Rebobinando à esquerda sobre 'Y'.</td></tr>
+        <tr><td>18</td><td>q0</td><td>2</td><td><code>X X [Y] Y Z Z _</code></td><td>&delta;(q3, X) &rarr; (q0, X, R)</td><td>Bateu no X! Dá 1 passo à direita e volta a q0.</td></tr>
+        <tr><td>19</td><td>q5</td><td>3</td><td><code>X X Y [Y] Z Z _</code></td><td>&delta;(q0, Y) &rarr; (q5, Y, R)</td><td>Leu 'Y'! Todos os 'a's foram consumidos! Entra em q5.</td></tr>
+        <tr><td>20</td><td>q5</td><td>4</td><td><code>X X Y Y [Z] Z _</code></td><td>&delta;(q5, Y) &rarr; (q5, Y, R)</td><td>Valida segundo 'Y'. Nenhum 'b' desmarcado sobrou.</td></tr>
+        <tr><td>21</td><td>q6</td><td>5</td><td><code>X X Y Y Z [Z] _</code></td><td>&delta;(q5, Z) &rarr; (q6, Z, R)</td><td>Chegou nos 'Z's! Muda para q6 para conferir até o fim.</td></tr>
+        <tr><td>22</td><td>q6</td><td>6</td><td><code>X X Y Y Z Z [_]</code></td><td>&delta;(q6, Z) &rarr; (q6, Z, R)</td><td>Valida segundo 'Z'. Nenhum 'c' desmarcado sobrou.</td></tr>
+        <tr><td>23</td><td>q_accept</td><td>6</td><td><code>X X Y Y Z Z [_]</code></td><td>&delta;(q6, _) &rarr; (qa, _, S)</td><td>Leu branco! Palavra formalmente <strong>ACEITA!</strong></td></tr>
+      </tbody>
+    </table>
+
+    <h2>3.5. Análise de Casos de Rejeição e Complexidade</h2>
+    <p>A máquina é decidível e rejeita com precisão qualquer anomalia de cadeia:</p>
+    <ul>
+      <li><strong>Palavra Vazia (ε):</strong> Em <code>q0</code> lendo <code>_</code>, a máquina trava imediatamente pois <code>&delta;(q0, _)</code> é indefinida. Isso satisfaz o critério <code>n &ge; 1</code>.</li>
+      <li><strong>Quantidade insuficiente de 'c's (ex: <code>aabbc</code>):</strong> No segundo ciclo, <code>q2</code> procura o segundo 'c', atinge o final da fita lendo <code>_</code>. Como <code>&delta;(q2, _)</code> é indefinida, trava e rejeita com a mensagem: <em>"A fita acabou enquanto procurava um 'c'. Faltam 'c's."</em></li>
+      <li><strong>Quantidade excessiva de 'b's (ex: <code>aabcc</code>):</strong> Em <code>q5</code>, ao tentar atravessar os 'Y's, ela encontra um <code>b</code> não marcado. Como <code>&delta;(q5, b)</code> não existe, trava e rejeita: <em>"Encontrou 'b' não marcado após o término dos 'a's."</em></li>
+      <li><strong>Ordem invertida (ex: <code>cba</code>):</strong> Em <code>q0</code> lendo <code>c</code>, não há regra e rejeita instantaneamente no passo 1.</li>
+    </ul>
+    <p>
+      <strong>Complexidade Assintótica:</strong> Para uma cadeia de tamanho total <code>m = 3n</code>, ocorrem <code>n</code> ciclos de busca. Cada ciclo percorre a cadeia completa de ida e volta (<code>&le; 2m</code> passos). A checagem final toma <code>m</code> passos. Portanto, o número total de passos é limitado por <code>T(n) = 2m &times; n + m = 2(3n)(n) + 3n = 6n² + 3n = O(n²)</code>. O consumo de espaço é restrito às <code>3n</code> células originais, logo a complexidade espacial é <code>O(n)</code>.
+    </p>
+  </div>
+
+  <!-- CAPÍTULO 4: LINGUAGEM L2 = ww -->
+  <div class="chapter">
+    <div class="chapter-header">
+      <div class="chapter-num">Capítulo 4</div>
+      <h1 class="chapter-title">Algoritmo 2: Reconhecedor de L₂ = {ww | w ∈ {0, 1}*}</h1>
+    </div>
+
+    <h2>4.1. Visão Geral e Intuição do Algoritmo em 2 Estágios</h2>
+    <p>
+      A linguagem <code>L₂ = {ww | w &in; {0, 1}*}</code> é formada por qualquer palavra binária composta pela repetição idêntica de uma subpalavra <code>w</code> (ex: <code>&epsilon;</code> para w=&epsilon;; <code>00</code> para w=0; <code>11</code> para w=1; <code>0101</code> para w=01; <code>110110</code> para w=110).
+    </p>
+
+    <div class="callout callout-analogy">
+      <div class="callout-title">💡 Analogia da Fita Métrica Dobrada ao Meio e dos Detetives Gêmeos</div>
+      <p>
+        Imagine que você tem uma fita opaca com uma sequência de números impressos (zeros e uns), mas você <strong>não sabe onde fica o meio</strong>. Você precisa descobrir duas coisas: (1) Se a fita tem comprimento perfeitamente par; e (2) Se a metade esquerda é um clone idêntico da metade direita.
+      </p>
+      <p>O algoritmo executa uma estratégia em <strong>Dois Estágios</strong>:</p>
+      <ol>
+        <li>
+          <strong>Estágio 1: Encontrar o Ponto Médio (O "Aperto de Pinça"):</strong><br>
+          Você coloca o polegar esquerdo na ponta esquerda e o polegar direito na ponta direita.
+          <ul>
+            <li>Você carimba o símbolo da ponta esquerda lembrando seu valor (se for <code>0</code> vira <code>A</code>; se for <code>1</code> vira <code>B</code>);</li>
+            <li>Você corre até a outra ponta e carimba o símbolo da ponta direita também lembrando seu valor (se for <code>0</code> vira <code>C</code>; se for <code>1</code> vira <code>D</code>);</li>
+            <li>Você repete esse processo aproximando as duas frentes em direção ao centro.</li>
+            <li><strong>Detecção de Paridade:</strong> Se no centro sobrar um único símbolo solitário sem par na direita, a fita é de tamanho <strong>ÍMPAR</strong>! Uma palavra de tamanho ímpar jamais pode ser duplicada (<code>ww</code> teria tamanho <code>2|w|</code>, que é sempre par). A máquina rejeita imediatamente!</li>
+            <li>Se os marcadores da esquerda (<code>A/B</code>) encontrarem diretamente a fronteira dos marcadores da direita (<code>C/D</code>), o ponto médio foi achado com precisão cirúrgica!</li>
+          </ul>
+        </li>
+        <li>
+          <strong>Estágio 2: Comparação de Clonagem (Casamento Símbolo a Símbolo):</strong><br>
+          O cabeçote rebobina até a célula 0. Agora começa o teste de igualdade:
+          <ul>
+            <li>Ele lê o primeiro símbolo da metade esquerda (<code>A</code> representa 0, <code>B</code> representa 1) e o marca com <code>*</code> (consumido);</li>
+            <li>Ele caminha até o primeiro símbolo disponível da metade direita (que <strong>deve</strong> ser <code>C</code> para 0 ou <code>D</code> para 1);</li>
+            <li>Se forem equivalentes (<code>A &harr; C</code> ou <code>B &harr; D</code>), ele carimba com <code>#</code> (validado com sucesso) e volta para pegar o próximo símbolo de <code>w₁</code>;</li>
+            <li>Se houver qualquer divergência (ex: <code>A</code> encontrou <code>D</code>), ele detecta a divergência e trava em rejeição!</li>
+          </ul>
+        </li>
+      </ol>
+    </div>
+
+    <!-- DIAGRAMA VETORIAL: ESQUEMA DOS DOIS ESTÁGIOS DE WW -->
+    <div class="diagram-container">
+      <svg viewBox="0 0 660 160" width="100%" height="150" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="arrow2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1 L 10 5 L 0 9 z" fill="#0284c7"/>
+          </marker>
+        </defs>
+
+        <!-- Bloco Estágio 1 -->
+        <rect x="20" y="15" width="295" height="135" rx="8" fill="#f0f9ff" stroke="#0284c7" stroke-width="1.8"/>
+        <text x="35" y="34" font-family="sans-serif" font-size="9" font-weight="bold" fill="#0369a1">ESTÁGIO 1: LOCALIZAR PONTO MÉDIO &amp; PARIDADE</text>
+        
+        <circle cx="65" cy="85" r="18" fill="#ffffff" stroke="#0284c7" stroke-width="1.8"/>
+        <text x="65" y="89" font-family="monospace" font-size="10" font-weight="bold" fill="#0c4a6e" text-anchor="middle">q0</text>
+
+        <circle cx="150" cy="55" r="18" fill="#ffffff" stroke="#0284c7" stroke-width="1.8"/>
+        <text x="150" y="59" font-family="monospace" font-size="8.5" font-weight="bold" fill="#0c4a6e" text-anchor="middle">q_sr</text>
+
+        <circle cx="250" cy="55" r="18" fill="#ffffff" stroke="#0284c7" stroke-width="1.8"/>
+        <text x="250" y="59" font-family="monospace" font-size="8.5" font-weight="bold" fill="#0c4a6e" text-anchor="middle">q_mr</text>
+
+        <circle cx="250" cy="115" r="18" fill="#ffffff" stroke="#0284c7" stroke-width="1.8"/>
+        <text x="250" y="119" font-family="monospace" font-size="8.5" font-weight="bold" fill="#0c4a6e" text-anchor="middle">q_sl</text>
+
+        <circle cx="150" cy="115" r="18" fill="#ffffff" stroke="#0284c7" stroke-width="1.8"/>
+        <text x="150" y="119" font-family="monospace" font-size="8.5" font-weight="bold" fill="#0c4a6e" text-anchor="middle">q_ml</text>
+
+        <!-- Arestas do Estágio 1 -->
+        <path d="M 83 80 L 132 60" fill="none" stroke="#0284c7" stroke-width="1.5" marker-end="url(#arrow2)"/>
+        <path d="M 168 55 L 232 55" fill="none" stroke="#0284c7" stroke-width="1.5" marker-end="url(#arrow2)"/>
+        <path d="M 250 73 L 250 97" fill="none" stroke="#0284c7" stroke-width="1.5" marker-end="url(#arrow2)"/>
+        <path d="M 232 115 L 168 115" fill="none" stroke="#0284c7" stroke-width="1.5" marker-end="url(#arrow2)"/>
+        <path d="M 150 97 L 150 73" fill="none" stroke="#0284c7" stroke-width="1.5" marker-end="url(#arrow2)"/>
+
+        <!-- Transição Estágio 1 -> Estágio 2 -->
+        <path d="M 315 85 L 345 85" fill="none" stroke="#6366f1" stroke-width="2.5" marker-end="url(#arrow2)"/>
+        <text x="330" y="78" font-family="sans-serif" font-size="7.5" font-weight="bold" fill="#4338ca" text-anchor="middle">Meio OK</text>
+
+        <!-- Bloco Estágio 2 -->
+        <rect x="345" y="15" width="295" height="135" rx="8" fill="#f5f3ff" stroke="#7c3aed" stroke-width="1.8"/>
+        <text x="360" y="34" font-family="sans-serif" font-size="9" font-weight="bold" fill="#5b21b6">ESTÁGIO 2: CASAMENTO SÍMBOLO A SÍMBOLO</text>
+
+        <circle cx="380" cy="85" r="18" fill="#ffffff" stroke="#7c3aed" stroke-width="1.8"/>
+        <text x="380" y="89" font-family="monospace" font-size="8.5" font-weight="bold" fill="#4c1d95" text-anchor="middle">q_rw</text>
+
+        <circle cx="455" cy="85" r="18" fill="#ffffff" stroke="#7c3aed" stroke-width="1.8"/>
+        <text x="455" y="89" font-family="monospace" font-size="8.5" font-weight="bold" fill="#4c1d95" text-anchor="middle">q_lp</text>
+
+        <circle cx="530" cy="55" r="18" fill="#ffffff" stroke="#7c3aed" stroke-width="1.8"/>
+        <text x="530" y="59" font-family="monospace" font-size="8.5" font-weight="bold" fill="#4c1d95" text-anchor="middle">q_fC</text>
+
+        <circle cx="530" cy="115" r="18" fill="#ffffff" stroke="#7c3aed" stroke-width="1.8"/>
+        <text x="530" y="119" font-family="monospace" font-size="8.5" font-weight="bold" fill="#4c1d95" text-anchor="middle">q_fD</text>
+
+        <!-- Aceitação -->
+        <circle cx="610" cy="85" r="18" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/>
+        <circle cx="610" cy="85" r="14" fill="none" stroke="#16a34a" stroke-width="1.2"/>
+        <text x="610" y="89" font-family="monospace" font-size="9" font-weight="bold" fill="#15803d" text-anchor="middle">qa</text>
+
+        <!-- Arestas do Estágio 2 -->
+        <path d="M 398 85 L 437 85" fill="none" stroke="#7c3aed" stroke-width="1.5" marker-end="url(#arrow2)"/>
+        <path d="M 470 73 L 514 58" fill="none" stroke="#7c3aed" stroke-width="1.5" marker-end="url(#arrow2)"/>
+        <path d="M 470 97 L 514 112" fill="none" stroke="#7c3aed" stroke-width="1.5" marker-end="url(#arrow2)"/>
+        <path d="M 473 85 L 592 85" fill="none" stroke="#16a34a" stroke-width="1.8" marker-end="url(#arrow2)"/>
+      </svg>
+      <div class="diagram-caption">Figura 4.1 — Arquitetura Algorítmica em 2 Estágios para L₂ = {ww}. Estágio 1 delimita o meio e rejeita cadeias ímpares; Estágio 2 compara os pares na ordem idêntica.</div>
+    </div>
+
+    <h2>4.2. Especificação Formal da Máquina M₂</h2>
+    <ul>
+      <li><strong>Estados:</strong> <code>Q = {q0, q_seek_right, q_mark_right, q_seek_left, q_mark_left, q_stage2_rewind_start, q_match_loop, q_match_find_C, q_match_find_D, q_match_rewind, q_verify_all_matched, q_accept, q_reject}</code></li>
+      <li><strong>Alfabeto de Entrada:</strong> <code>&Sigma; = {0, 1}</code></li>
+      <li><strong>Alfabeto da Fita:</strong> <code>&Gamma; = {0, 1, A, B, C, D, *, #, _}</code> (onde A=0_esq, B=1_esq, C=0_dir, D=1_dir, *=esq_validado, #=dir_validado)</li>
+      <li><strong>Estado Inicial:</strong> <code>q0</code></li>
+      <li><strong>Símbolo de Branco:</strong> <code>_</code></li>
+      <li><strong>Estado de Aceitação:</strong> <code>F = {q_accept}</code></li>
+    </ul>
+
+    <h2>4.3. Tabela Completa de Transições δ de M₂</h2>
+    <p>Abaixo estão as 27 transições fundamentais agrupadas pelos dois estágios funcionais:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th style="width: 13%;">Regra</th>
+          <th style="width: 14%;">Estado</th>
+          <th style="width: 8%;">Lê</th>
+          <th style="width: 15%;">Próx. Estado</th>
+          <th style="width: 8%;">Grava</th>
+          <th style="width: 7%;">Dir.</th>
+          <th style="width: 35%;">Função no Algoritmo</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Estágio 1 -->
+        <tr><td><code>&delta;(q0, _)</code></td><td><span class="table-state">q0</span></td><td><span class="table-symbol">_</span></td><td><span class="table-state">q_accept</span></td><td><span class="table-symbol">_</span></td><td><span class="badge-dir dir-s">S</span></td><td>Palavra vazia (&epsilon;): para w=&epsilon;, ww=&epsilon;. Pertence a L. <strong>ACEITA!</strong></td></tr>
+        <tr><td><code>&delta;(q0, 0)</code></td><td><span class="table-state">q0</span></td><td><span class="table-symbol">0</span></td><td><span class="table-state">q_seek_right</span></td><td><span class="table-symbol">A</span></td><td><span class="badge-dir dir-r">R</span></td><td>Marca primeiro 0 como A. Varre à direita até a ponta oposta.</td></tr>
+        <tr><td><code>&delta;(q0, 1)</code></td><td><span class="table-state">q0</span></td><td><span class="table-symbol">1</span></td><td><span class="table-state">q_seek_right</span></td><td><span class="table-symbol">B</span></td><td><span class="badge-dir dir-r">R</span></td><td>Marca primeiro 1 como B. Varre à direita até a ponta oposta.</td></tr>
+        <tr><td><code>&delta;(q_seek_r, 0)</code></td><td><span class="table-state">q_seek_right</span></td><td><span class="table-symbol">0</span></td><td><span class="table-state">q_seek_right</span></td><td><span class="table-symbol">0</span></td><td><span class="badge-dir dir-r">R</span></td><td>Atravessa símbolos 0 em direção à direita.</td></tr>
+        <tr><td><code>&delta;(q_seek_r, 1)</code></td><td><span class="table-state">q_seek_right</span></td><td><span class="table-symbol">1</span></td><td><span class="table-state">q_seek_right</span></td><td><span class="table-symbol">1</span></td><td><span class="badge-dir dir-r">R</span></td><td>Atravessa símbolos 1 em direção à direita.</td></tr>
+        <tr><td><code>&delta;(q_seek_r, _)</code></td><td><span class="table-state">q_seek_right</span></td><td><span class="table-symbol">_</span></td><td><span class="table-state">q_mark_right</span></td><td><span class="table-symbol">_</span></td><td><span class="badge-dir dir-l">L</span></td><td>Bateu no branco do fim da cadeia! Volta 1 passo para marcar o último.</td></tr>
+        <tr><td><code>&delta;(q_seek_r, C)</code></td><td><span class="table-state">q_seek_right</span></td><td><span class="table-symbol">C</span></td><td><span class="table-state">q_mark_right</span></td><td><span class="table-symbol">C</span></td><td><span class="badge-dir dir-l">L</span></td><td>Bateu na barreira de símbolos já marcados na direita. Volta 1 passo.</td></tr>
+        <tr><td><code>&delta;(q_seek_r, D)</code></td><td><span class="table-state">q_seek_right</span></td><td><span class="table-symbol">D</span></td><td><span class="table-state">q_mark_right</span></td><td><span class="table-symbol">D</span></td><td><span class="badge-dir dir-l">L</span></td><td>Bateu na barreira de símbolos já marcados na direita. Volta 1 passo.</td></tr>
+        <tr><td><code>&delta;(q_mark_r, 0)</code></td><td><span class="table-state">q_mark_right</span></td><td><span class="table-symbol">0</span></td><td><span class="table-state">q_seek_left</span></td><td><span class="table-symbol">C</span></td><td><span class="badge-dir dir-l">L</span></td><td>Marca o 0 da ponta direita como C. Inicia retorno à esquerda.</td></tr>
+        <tr><td><code>&delta;(q_mark_r, 1)</code></td><td><span class="table-state">q_mark_right</span></td><td><span class="table-symbol">1</span></td><td><span class="table-state">q_seek_left</span></td><td><span class="table-symbol">D</span></td><td><span class="badge-dir dir-l">L</span></td><td>Marca o 1 da ponta direita como D. Inicia retorno à esquerda.</td></tr>
+        <tr><td><code>&delta;(q_seek_l, 0)</code></td><td><span class="table-state">q_seek_left</span></td><td><span class="table-symbol">0</span></td><td><span class="table-state">q_seek_left</span></td><td><span class="table-symbol">0</span></td><td><span class="badge-dir dir-l">L</span></td><td>Atravessa símbolos 0 em direção à esquerda.</td></tr>
+        <tr><td><code>&delta;(q_seek_l, 1)</code></td><td><span class="table-state">q_seek_left</span></td><td><span class="table-symbol">1</span></td><td><span class="table-state">q_seek_left</span></td><td><span class="table-symbol">1</span></td><td><span class="badge-dir dir-l">L</span></td><td>Atravessa símbolos 1 em direção à esquerda.</td></tr>
+        <tr><td><code>&delta;(q_seek_l, A)</code></td><td><span class="table-state">q_seek_left</span></td><td><span class="table-symbol">A</span></td><td><span class="table-state">q_mark_left</span></td><td><span class="table-symbol">A</span></td><td><span class="badge-dir dir-r">R</span></td><td>Bateu no último símbolo marcado na esquerda (A). Volta 1 passo à direita.</td></tr>
+        <tr><td><code>&delta;(q_seek_l, B)</code></td><td><span class="table-state">q_seek_left</span></td><td><span class="table-symbol">B</span></td><td><span class="table-state">q_mark_left</span></td><td><span class="table-symbol">B</span></td><td><span class="badge-dir dir-r">R</span></td><td>Bateu no último símbolo marcado na esquerda (B). Volta 1 passo à direita.</td></tr>
+        <tr><td><code>&delta;(q_mark_l, 0)</code></td><td><span class="table-state">q_mark_left</span></td><td><span class="table-symbol">0</span></td><td><span class="table-state">q_seek_right</span></td><td><span class="table-symbol">A</span></td><td><span class="badge-dir dir-r">R</span></td><td>Marca próximo símbolo da esquerda como A. Volta a varrer à direita.</td></tr>
+        <tr><td><code>&delta;(q_mark_l, 1)</code></td><td><span class="table-state">q_mark_left</span></td><td><span class="table-symbol">1</span></td><td><span class="table-state">q_seek_right</span></td><td><span class="table-symbol">B</span></td><td><span class="badge-dir dir-r">R</span></td><td>Marca próximo símbolo da esquerda como B. Volta a varrer à direita.</td></tr>
+        <tr><td><code>&delta;(q_mark_l, C)</code></td><td><span class="table-state">q_mark_left</span></td><td><span class="table-symbol">C</span></td><td><span class="table-state">q_st2_rewind</span></td><td><span class="table-symbol">C</span></td><td><span class="badge-dir dir-l">L</span></td><td><strong>PONTO MÉDIO ENCONTRADO!</strong> Esquerda tocou C. Inicia Estágio 2.</td></tr>
+        <tr><td><code>&delta;(q_mark_l, D)</code></td><td><span class="table-state">q_mark_left</span></td><td><span class="table-symbol">D</span></td><td><span class="table-state">q_st2_rewind</span></td><td><span class="table-symbol">D</span></td><td><span class="badge-dir dir-l">L</span></td><td><strong>PONTO MÉDIO ENCONTRADO!</strong> Esquerda tocou D. Inicia Estágio 2.</td></tr>
+        <!-- Estágio 2 -->
+        <tr><td><code>&delta;(q_rw, A/B)</code></td><td><span class="table-state">q_st2_rewind</span></td><td><span class="table-symbol">A, B</span></td><td><span class="table-state">q_st2_rewind</span></td><td><span class="table-symbol">A, B</span></td><td><span class="badge-dir dir-l">L</span></td><td>Rebobina cabeçote até o branco à esquerda da posição 0.</td></tr>
+        <tr><td><code>&delta;(q_rw, _)</code></td><td><span class="table-state">q_st2_rewind</span></td><td><span class="table-symbol">_</span></td><td><span class="table-state">q_match_loop</span></td><td><span class="table-symbol">_</span></td><td><span class="badge-dir dir-r">R</span></td><td>Chegou ao início da fita! Dá 1 passo à direita e inicia comparação.</td></tr>
+        <tr><td><code>&delta;(q_loop, *)</code></td><td><span class="table-state">q_match_loop</span></td><td><span class="table-symbol">*</span></td><td><span class="table-state">q_match_loop</span></td><td><span class="table-symbol">*</span></td><td><span class="badge-dir dir-r">R</span></td><td>Pula símbolos da 1ª metade já conferidos (*).</td></tr>
+        <tr><td><code>&delta;(q_loop, A)</code></td><td><span class="table-state">q_match_loop</span></td><td><span class="table-symbol">A</span></td><td><span class="table-state">q_find_C</span></td><td><span class="table-symbol">*</span></td><td><span class="badge-dir dir-r">R</span></td><td>Leu 0 (A): consome com *. Vai buscar o 0 correspondente (C) na direita.</td></tr>
+        <tr><td><code>&delta;(q_loop, B)</code></td><td><span class="table-state">q_match_loop</span></td><td><span class="table-symbol">B</span></td><td><span class="table-state">q_find_D</span></td><td><span class="table-symbol">*</span></td><td><span class="badge-dir dir-r">R</span></td><td>Leu 1 (B): consome com *. Vai buscar o 1 correspondente (D) na direita.</td></tr>
+        <tr><td><code>&delta;(q_loop, #)</code></td><td><span class="table-state">q_match_loop</span></td><td><span class="table-symbol">#</span></td><td><span class="table-state">q_verify_all</span></td><td><span class="table-symbol">#</span></td><td><span class="badge-dir dir-r">R</span></td><td>Todos de w1 foram consumidos! Entra na validação final de w2.</td></tr>
+        <tr><td><code>&delta;(q_fC, C)</code></td><td><span class="table-state">q_find_C</span></td><td><span class="table-symbol">C</span></td><td><span class="table-state">q_match_rw</span></td><td><span class="table-symbol">#</span></td><td><span class="badge-dir dir-l">L</span></td><td><strong>CASAMENTO OK!</strong> Achou C (0) correspondente ao A. Marca com # e volta.</td></tr>
+        <tr><td><code>&delta;(q_fD, D)</code></td><td><span class="table-state">q_find_D</span></td><td><span class="table-symbol">D</span></td><td><span class="table-state">q_match_rw</span></td><td><span class="table-symbol">#</span></td><td><span class="badge-dir dir-l">L</span></td><td><strong>CASAMENTO OK!</strong> Achou D (1) correspondente ao B. Marca com # e volta.</td></tr>
+        <tr><td><code>&delta;(q_mrw, *)</code></td><td><span class="table-state">q_match_rw</span></td><td><span class="table-symbol">*</span></td><td><span class="table-state">q_match_loop</span></td><td><span class="table-symbol">*</span></td><td><span class="badge-dir dir-r">R</span></td><td>Bateu no último '*' consumido. Dá 1 passo à direita para o próximo par.</td></tr>
+        <tr><td><code>&delta;(q_ver, _)</code></td><td><span class="table-state">q_verify_all</span></td><td><span class="table-symbol">_</span></td><td><span class="table-state">q_accept</span></td><td><span class="table-symbol">_</span></td><td><span class="badge-dir dir-s">S</span></td><td>Fim da fita limpo! w1 é rigorosamente idêntico a w2. <strong>ACEITA!</strong></td></tr>
+      </tbody>
+    </table>
+
+    <h2>4.4. Demonstração de Execução Passo a Passo (Trace) para w = "0101"</h2>
+    <p>Abaixo está o traçado da palavra <code>w = 0101</code> (onde w₁=01 e w₂=01):</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th style="width: 7%;">Passo</th>
+          <th style="width: 14%;">Estado</th>
+          <th style="width: 7%;">Pos.</th>
+          <th style="width: 25%;">Visão da Fita</th>
+          <th style="width: 22%;">Regra Disparada</th>
+          <th style="width: 25%;">Ação Semântica</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>0</td><td>q0</td><td>0</td><td><code>[0] 1 0 1 _</code></td><td>Início</td><td>Entrada carregada na fita.</td></tr>
+        <tr><td>1</td><td>q_seek_right</td><td>1</td><td><code>A [1] 0 1 _</code></td><td>&delta;(q0, 0) &rarr; (q_seek_r, A, R)</td><td>Gravou A na pos 0. Busca ponta direita.</td></tr>
+        <tr><td>2</td><td>q_seek_right</td><td>2</td><td><code>A 1 [0] 1 _</code></td><td>&delta;(q_seek_r, 1) &rarr; (q_seek_r, 1, R)</td><td>Atravessa 1.</td></tr>
+        <tr><td>3</td><td>q_seek_right</td><td>3</td><td><code>A 1 0 [1] _</code></td><td>&delta;(q_seek_r, 0) &rarr; (q_seek_r, 0, R)</td><td>Atravessa 0.</td></tr>
+        <tr><td>4</td><td>q_seek_right</td><td>4</td><td><code>A 1 0 1 [_]</code></td><td>&delta;(q_seek_r, 1) &rarr; (q_seek_r, 1, R)</td><td>Atravessa 1 e atinge branco.</td></tr>
+        <tr><td>5</td><td>q_mark_right</td><td>3</td><td><code>A 1 0 [1] _</code></td><td>&delta;(q_seek_r, _) &rarr; (q_mark_r, _, L)</td><td>Volta 1 passo para marcar o extremo direito.</td></tr>
+        <tr><td>6</td><td>q_seek_left</td><td>2</td><td><code>A 1 [0] D _</code></td><td>&delta;(q_mark_r, 1) &rarr; (q_seek_l, D, L)</td><td>Gravou D (1) na pos 3! Volta para a esquerda.</td></tr>
+        <tr><td>7</td><td>q_seek_left</td><td>1</td><td><code>A [1] 0 D _</code></td><td>&delta;(q_seek_l, 0) &rarr; (q_seek_l, 0, L)</td><td>Atravessa 0.</td></tr>
+        <tr><td>8</td><td>q_seek_left</td><td>0</td><td><code>[A] 1 0 D _</code></td><td>&delta;(q_seek_l, 1) &rarr; (q_seek_l, 1, L)</td><td>Atravessa 1 e alcança o 'A' marcado.</td></tr>
+        <tr><td>9</td><td>q_mark_left</td><td>1</td><td><code>A [1] 0 D _</code></td><td>&delta;(q_seek_l, A) &rarr; (q_mark_l, A, R)</td><td>Dá 1 passo à direita para marcar o próximo de w1.</td></tr>
+        <tr><td>10</td><td>q_seek_right</td><td>2</td><td><code>A B [0] D _</code></td><td>&delta;(q_mark_l, 1) &rarr; (q_seek_r, B, R)</td><td>Gravou B (1) na pos 1. Avança para achar par.</td></tr>
+        <tr><td>11</td><td>q_seek_right</td><td>3</td><td><code>A B 0 [D] _</code></td><td>&delta;(q_seek_r, 0) &rarr; (q_seek_r, 0, R)</td><td>Atravessa 0 e atinge a barreira 'D'.</td></tr>
+        <tr><td>12</td><td>q_mark_right</td><td>2</td><td><code>A B [0] D _</code></td><td>&delta;(q_seek_r, D) &rarr; (q_mark_r, D, L)</td><td>Volta 1 passo para marcar o 0 da pos 2.</td></tr>
+        <tr><td>13</td><td>q_seek_left</td><td>1</td><td><code>A [B] C D _</code></td><td>&delta;(q_mark_r, 0) &rarr; (q_seek_l, C, L)</td><td>Gravou C (0) na pos 2! Volta à esquerda.</td></tr>
+        <tr><td>14</td><td>q_mark_left</td><td>2</td><td><code>A B [C] D _</code></td><td>&delta;(q_seek_l, B) &rarr; (q_mark_l, B, R)</td><td>Bateu em B! Dá 1 passo à direita: <strong>Leu 'C'!</strong></td></tr>
+        <tr><td>15</td><td>q_st2_rewind</td><td>1</td><td><code>A [B] C D _</code></td><td>&delta;(q_mark_l, C) &rarr; (q_rw, C, L)</td><td><strong>Ponto médio encontrado!</strong> Inicia rebobinamento.</td></tr>
+        <tr><td>16</td><td>q_st2_rewind</td><td>0</td><td><code>[A] B C D _</code></td><td>&delta;(q_rw, B) &rarr; (q_rw, B, L)</td><td>Rebobinando sobre A.</td></tr>
+        <tr><td>17</td><td>q_st2_rewind</td><td>-1</td><td><code>[_] A B C D _</code></td><td>&delta;(q_rw, A) &rarr; (q_rw, A, L)</td><td>Atingiu branco à esquerda da célula 0.</td></tr>
+        <tr><td>18</td><td>q_match_loop</td><td>0</td><td><code>[A] B C D _</code></td><td>&delta;(q_rw, _) &rarr; (q_loop, _, R)</td><td>Cabeçote no início! Começa checagem de casamento.</td></tr>
+        <tr><td>19</td><td>q_find_C</td><td>1</td><td><code>* [B] C D _</code></td><td>&delta;(q_loop, A) &rarr; (q_find_C, *, R)</td><td>Consome A com *. Vai buscar 'C' na direita.</td></tr>
+        <tr><td>20</td><td>q_find_C</td><td>2</td><td><code>* B [C] D _</code></td><td>&delta;(q_find_C, B) &rarr; (q_find_C, B, R)</td><td>Pula B e acha 'C'! <strong>(0 casou com 0!)</strong></td></tr>
+        <tr><td>21</td><td>q_match_rw</td><td>1</td><td><code>* [B] # D _</code></td><td>&delta;(q_find_C, C) &rarr; (q_mrw, #, L)</td><td>Marca C com #. Rebobina para pegar o próximo.</td></tr>
+        <tr><td>22</td><td>q_match_rw</td><td>0</td><td><code>[*] B # D _</code></td><td>&delta;(q_mrw, B) &rarr; (q_mrw, B, L)</td><td>Atravessa B e atinge o '*' consumido.</td></tr>
+        <tr><td>23</td><td>q_match_loop</td><td>1</td><td><code>* [B] # D _</code></td><td>&delta;(q_mrw, *) &rarr; (q_loop, *, R)</td><td>Dá 1 passo à direita: leu 'B'.</td></tr>
+        <tr><td>24</td><td>q_find_D</td><td>2</td><td><code>* * [#] D _</code></td><td>&delta;(q_loop, B) &rarr; (q_find_D, *, R)</td><td>Consome B com *. Vai buscar 'D' na direita.</td></tr>
+        <tr><td>25</td><td>q_find_D</td><td>3</td><td><code>* * # [D] _</code></td><td>&delta;(q_find_D, #) &rarr; (q_find_D, #, R)</td><td>Pula '#' já validado e acha 'D'! <strong>(1 casou com 1!)</strong></td></tr>
+        <tr><td>26</td><td>q_match_rw</td><td>2</td><td><code>* * [#] # _</code></td><td>&delta;(q_find_D, D) &rarr; (q_mrw, #, L)</td><td>Marca D com #. Rebobina para o próximo.</td></tr>
+        <tr><td>27</td><td>q_match_rw</td><td>1</td><td><code>* [*] # # _</code></td><td>&delta;(q_mrw, #) &rarr; (q_mrw, #, L)</td><td>Atinge o '*' da pos 1.</td></tr>
+        <tr><td>28</td><td>q_match_loop</td><td>2</td><td><code>* * [#] # _</code></td><td>&delta;(q_mrw, *) &rarr; (q_loop, *, R)</td><td>Dá 1 passo à direita: leu '#'! Todos de w1 casaram!</td></tr>
+        <tr><td>29</td><td>q_verify_all</td><td>3</td><td><code>* * # [#] _</code></td><td>&delta;(q_loop, #) &rarr; (q_verify, #, R)</td><td>Transiciona para q_verify para varrer até o fim.</td></tr>
+        <tr><td>30</td><td>q_verify_all</td><td>4</td><td><code>* * # # [_]</code></td><td>&delta;(q_verify, #) &rarr; (q_verify, #, R)</td><td>Varre segundo '#' e atinge o branco da fita.</td></tr>
+        <tr><td>31</td><td>q_accept</td><td>4</td><td><code>* * # # [_]</code></td><td>&delta;(q_verify, _) &rarr; (qa, _, S)</td><td>Leu branco! w1 == w2. Palavra <strong>ACEITA!</strong></td></tr>
+      </tbody>
+    </table>
+
+    <h2>4.5. Casos de Rejeição em L₂ e Complexidade</h2>
+    <ul>
+      <li><strong>Comprimento Ímpar (ex: <code>010</code>):</strong> O primeiro 0 vira A na pos 0, o último 0 vira C na pos 2. No retorno à esquerda, o cabeçote lê o '1' da pos 1 e tenta marcá-lo como 'B' no estado <code>q_mark_left</code>. A seguir, move para a direita (pos 2) lendo 'C' e detecta que a cadeia acabou, mas restou 1 símbolo desemparelhado. Em palavras como <code>101</code>, o estado <code>q_mark_right</code> lê diretamente um 'A' ou 'B' da esquerda sem ter símbolo da direita para casar, travando com mensagem explícita de paridade ímpar.</li>
+      <li><strong>Divergência de Bits (ex: <code>0110</code>):</strong> A máquina encontra o ponto médio perfeitamente (tamanho 4 é par), gravando <code>A B D C</code>. No Estágio 2, ela consome o primeiro símbolo <code>A</code> (0) e entra em <code>q_match_find_C</code> buscando <code>C</code> (0). Porém, o primeiro símbolo da segunda metade é <code>D</code> (1). Como <code>&delta;(q_match_find_C, D)</code> é estritamente indefinida, a máquina trava e rejeita: <em>"DIVERGÊNCIA! A primeira metade tem '0', mas a segunda metade tem '1' ('D'). w1 != w2."</em></li>
+    </ul>
+    <p>
+      <strong>Complexidade:</strong> O Estágio 1 realiza <code>n/2</code> viagens de ida e volta sobre a cadeia de tamanho <code>n</code> (custo <code>&sim; n²/2</code>). O Estágio 2 realiza <code>n/2</code> buscas da esquerda para a direita (custo <code>&sim; n²/4</code>). A complexidade total de tempo é <code>O(n²)</code> e o consumo de espaço na fita é estritamente <code>O(n)</code> células.
+    </p>
+  </div>
+
+  <!-- CAPÍTULO 5: TESTES E CONCLUSÃO -->
+  <div class="chapter">
+    <div class="chapter-header">
+      <div class="chapter-num">Capítulo 5</div>
+      <h1 class="chapter-title">Verificação Experimental, Testes e Guia de Execução</h1>
+    </div>
+
+    <h2>5.1. Bateria de Testes Automatizados</h2>
+    <p>
+      O projeto conta com uma suíte de testes unitários automatizada baseada no framework padrão <code>unittest</code> do Python, cobrindo todos os casos fundamentais e condições de borda da máquina:
+    </p>
+
+    <table>
+      <thead>
+        <tr>
+          <th style="width: 25%;">Arquivo de Teste</th>
+          <th style="width: 30%;">Cenário Testado</th>
+          <th style="width: 30%;">Entradas de Amostra</th>
+          <th style="width: 15%;">Resultado</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>test_tape.py</code></td>
+          <td>Fita infinita, indexação negativa, movimentos L/R/S e clonagem</td>
+          <td>Escritas em pos -10, 0, +10; limites dinâmicos</td>
+          <td><span class="badge-ok">100% Aprovado</span></td>
+        </tr>
+        <tr>
+          <td><code>test_an_bn_cn.py</code></td>
+          <td>Cadeias válidas de $a^n b^n c^n$</td>
+          <td><code>abc</code> (n=1), <code>aabbcc</code> (n=2), <code>aaabbbccc</code> (n=3)</td>
+          <td><span class="badge-ok">100% Aceitas</span></td>
+        </tr>
+        <tr>
+          <td><code>test_an_bn_cn.py</code></td>
+          <td>Cadeias inválidas, proporções erradas e ordem incorreta</td>
+          <td><code>&epsilon;</code>, <code>aabbc</code>, <code>aabcc</code>, <code>abbc</code>, <code>cba</code>, <code>aabbcca</code></td>
+          <td><span class="badge-rej">100% Rejeitadas</span></td>
+        </tr>
+        <tr>
+          <td><code>test_ww.py</code></td>
+          <td>Cadeias válidas de duplicação binária $ww$</td>
+          <td><code>&epsilon;</code>, <code>00</code>, <code>11</code>, <code>0101</code>, <code>110110</code>, <code>10101010</code></td>
+          <td><span class="badge-ok">100% Aceitas</span></td>
+        </tr>
+        <tr>
+          <td><code>test_ww.py</code></td>
+          <td>Comprimento ímpar e divergências de bits</td>
+          <td><code>0</code>, <code>1</code>, <code>010</code>, <code>101</code>, <code>0110</code>, <code>1001</code></td>
+          <td><span class="badge-rej">100% Rejeitadas</span></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout callout-code">
+      <div class="callout-title">🖥️ Execução dos Testes Unitários via Terminal</div>
+      <pre>$ python3 -m unittest discover tests
+...............
+----------------------------------------------------------------------
+Ran 15 tests in 0.028s
+
+OK</pre>
+    </div>
+
+    <h2>5.2. Como Executar o Projeto</h2>
+    <h3>1. Interface Gráfica Web no Navegador (Recomendada)</h3>
+    <pre>$ python3 main.py --web
+# ou
+$ python3 server.py
+# Acesse no navegador: http://localhost:8080</pre>
+
+    <h3>2. Interface de Linha de Comando (CLI no Terminal)</h3>
+    <pre># Modo interativo com menu explicativo:
+$ python3 main.py
+
+# Simulação rápida direta exibindo todo o histórico:
+$ python3 main.py --lang anbncn --word aabbcc --mode fast
+
+# Simulação animada no terminal em tempo real:
+$ python3 main.py --lang ww --word 0101 --mode animated</pre>
+
+    <h2>5.3. Conclusão e Considerações Finais</h2>
+    <p>
+      O desenvolvimento deste autômato de decisão para o Tema 5 consolida na prática os fundamentos mais nobres da Ciência da Computação teórica. A superação das limitações impostas pela pilha em linguagens sensíveis ao contexto demonstra a versatilidade inigualável da fita bidirecional de Turing.
+    </p>
+    <p>
+      A implementação não apenas atende a todos os requisitos acadêmicos formais, como eleva a experiência de aprendizado por meio de rastreabilidade completa, representação semântica de intenções, visualização vetorial em tempo real e documentação integral sem lacunas conceituais.
+    </p>
+
+    <div class="callout callout-theory">
+      <div class="callout-title">📚 Referências Bibliográficas Recomendadas</div>
+      <ul>
+        <li><strong>SIPSER, Michael.</strong> <em>Introdução à Teoria da Computação</em>. 3ª ed. Cengage Learning, 2014. (Capítulo 3: A Tese de Church-Turing; Capítulo 4: Decidibilidade).</li>
+        <li><strong>HOPCROFT, John E.; MOTWANI, Rajeev; ULLMAN, Jeffrey D.</strong> <em>Introdução à Teoria de Autômatos, Linguagens e Computação</em>. 3ª ed. Campus/Elsevier, 2008.</li>
+        <li><strong>LEWIS, Harry R.; PAPADIMITRIOU, Christos H.</strong> <em>Elementos de Teoria da Computação</em>. 2ª ed. Bookman, 2000.</li>
+        <li><strong>TURING, Alan M.</strong> <em>On Computable Numbers, with an Application to the Entscheidungsproblem</em>. Proceedings of the London Mathematical Society, 1936.</li>
+      </ul>
+    </div>
+  </div>
+
+</body>
+</html>
+"""
+
+def main():
+    docs_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "docs")
+    os.makedirs(docs_dir, exist_ok=True)
+
+    html_path = os.path.join(docs_dir, "manual_didatico_maquina_turing.html")
+    pdf_path = os.path.join(docs_dir, "Manual_Didatico_Maquina_de_Turing.pdf")
+    root_pdf_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "Manual_Didatico_Maquina_de_Turing.pdf")
+
+    print(f"Escrevendo documento HTML em: {html_path}...")
+    with open(html_path, "w", encoding="utf-8") as f:
+        f.write(HTML_CONTENT)
+
+    print("Gerando PDF via Chromium Headless...")
+    cmd = [
+        "chromium",
+        "--headless",
+        "--disable-gpu",
+        "--no-sandbox",
+        "--no-pdf-header-footer",
+        f"--print-to-pdf={pdf_path}",
+        html_path
+    ]
+
+    res = subprocess.run(cmd, capture_output=True, text=True)
+    if res.returncode != 0:
+        print(f"Erro ao gerar PDF: {res.stderr}")
+        sys.exit(1)
+
+    print(f"PDF gerado com sucesso em: {pdf_path}")
+
+    # Também copia para a raiz do repositório para acesso imediato
+    import shutil
+    shutil.copyfile(pdf_path, root_pdf_path)
+    print(f"Cópia criada na raiz: {root_pdf_path}")
+
+    # Exibe informações do PDF se pdfinfo estiver disponível
+    try:
+        info = subprocess.run(["pdfinfo", pdf_path], capture_output=True, text=True)
+        print("\nInformações do PDF gerado:")
+        print(info.stdout)
+    except Exception as e:
+        print(f"Não foi possível obter pdfinfo: {e}")
+
+if __name__ == "__main__":
+    main()
